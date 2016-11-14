@@ -29,23 +29,37 @@ class RobotWorld(World):
         World.__init__(self, conf)
         self.robots = []
         self.update = lambda x: x # identity
+        self.update_robot = []
         # self.X = np.zeros((1, self.dim )).T
-        self.X = None
+        self.X    = None # full state information
+        self.Xidx = None #
+        # self.update_robot_f = lambda x: x.x
+        # noisyness?
+        self.noise = 1e-3
 
-    def add_robots(self, robots):
-        for robot in robots:
-            self.robots.append(robot)
+    def update_robot_f(self, x):
+        """update function for a given robot, arg x is a robot instance"""
+        return x.x + np.random.normal(0, self.noise, x.x.shape)
+        
+    # def add_robots(self, robots):
+    #     for i, robot in enumerate(robots):
+    #         self.robots.append({"robot": robot})
+    #         self.update_robot.append(lambda x: x.x)
 
     def step(self):
         # print "self.time", self.time
-        Y = []
-        for robot in self.robots:
+        # Y = []
+        for i,robot in enumerate(self.robots):
             # print "robot", robot
             # step robot, returns y (motor vector, or body state description)
-            Y.append(robot.step(self.X))
-        Y = np.array(Y)
-        self.X = self.update(Y)
-        print "RobotWorld.step X", self.X
+            # FIXME: this is awkward, rather get/set x directly from outside
+            y = robot.step(robot.x)
+            # print "self.update_robot[i]", self.update_robot, i
+            robot.x = self.update_robot[i](robot)
+            
+        # Y = np.array(Y)
+        # self.X = self.update(Y)
+        # print "RobotWorld.step X", self.X
         self.time += self.dt
 
     def add(self, items):
@@ -59,3 +73,6 @@ class RobotWorld(World):
                 if isinstance(item, Robot):
                     print "it's a robot"
                     self.robots.append(item)
+                    self.update_robot.append(self.update_robot_f)
+        else:
+            print self.__class__.__name__, "add(): requires list"

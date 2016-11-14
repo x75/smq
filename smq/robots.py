@@ -98,11 +98,11 @@ def make_args_from_(conf):
     if conf["class"].__name__.startswith("Pointmass"):
         system = "pointmass"
         
-    if conf["dim"] == 1:
+    if conf["mdim"] == 1:
         sysdim = "low"
-    elif conf["dim"] == 3:
+    elif conf["mdim"] == 3:
         sysdim = "mid"
-    elif conf["dim"] == 10:
+    elif conf["mdim"] == 10:
         sysdim = "high"
     
     setattr(args, "system", system)
@@ -113,6 +113,9 @@ def make_args_from_(conf):
 class Robot(object):
     def __init__(self, conf):
         self.conf = conf
+        # yeah, which dim: DoF sensorimotor, DoF locomotion, sensor dim, motor dim, ...
+        self.sdim   = self.conf["sdim"]
+        self.mdim   = self.conf["mdim"]
 
     def step(self):
         pass
@@ -124,6 +127,12 @@ class PointmassRobot(Robot):
         # print "PointmassRobot.conf", conf
         # make args from conf needing numsteps, system, sysdim
         Robot.__init__(self, self.conf)
+        # ROS
+        if self.conf["ros"] is True:
+            import rospy
+            rospy.init_node("%s" % self.conf["name"])
+        self.x = np.zeros((self.sdim, 1))
+        self.y = np.zeros((self.mdim, 1))
         
         if self.conf["type"] == "explauto":
             # print "expl"
@@ -139,9 +148,9 @@ class PointmassRobot(Robot):
         """step the robot: input is vector of new information $x$ from the world"""
         print "PointmassRobot.step x", x
         if x is None: # catch initial state
-            x = np.random.uniform(-1.0, 1.0, (self.conf["dim"], 1))
+            self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
+        print "x", x
         # 1. s = get sensors
         # 2. m = ask brain(s)
         # 3. w = ask_world(m)
-        return x.reshape(self.conf["dim"],)
-        
+        return self.x.reshape(self.mdim,)

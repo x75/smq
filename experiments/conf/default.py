@@ -18,12 +18,18 @@ numsteps = 1000
 
 # using dict convention seemed to be the best over yaml and friends
 conf = {
+    # first level corresponds to experiment
+    "numsteps": numsteps,
+    # these are arrays of dicts specifying components
     "robots": [
         {"class": PointmassRobot,
          "type": "explauto",
-         "dim": 1,
+         "name": "pm",
+         "sdim": 1, # sensor dim
+         "mdim": 1, # motor  dim
          "numsteps": numsteps,
-         "control": "kinematic"
+         "control": "kinematic",
+         "ros": False,
         }
     ],
     "worlds": [
@@ -35,5 +41,8 @@ conf = {
     ],
     "task": "setpoint",
     "brain": "kinesis",
-    "loss": "mse"
+    "loss": "mse",
+    "analyses": [
+        "plot_timeseries",
+        ],
     }

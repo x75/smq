@@ -10,6 +10,7 @@ import argparse
 # available robots: pointmass, simple arm, two-wheeled differential, ...
 
 from smq.worlds import RobotWorld
+from smq.logging import Logger
 
 ################################################################################
 # from im/im_quadrotor_controller
@@ -17,12 +18,12 @@ def get_args():
     import argparse
     # define defaults
     default_conf     = "conf/default.py"
-    default_numsteps = 10
+    default_numsteps = None # 10
     # create parser
     parser = argparse.ArgumentParser()
     # add required arguments
     parser.add_argument("-c", "--conf",     type=str, default=default_conf,     help="Configuration file [%s]" % default_conf)
-    parser.add_argument("-n", "--numsteps", type=int, default=default_numsteps, help="Number of outer loop steps [%d]" % default_numsteps)
+    parser.add_argument("-n", "--numsteps", type=int, default=default_numsteps, help="Number of outer loop steps [%s]" % default_numsteps)
     # parse arguments
     args = parser.parse_args()
     # return arguments
@@ -59,19 +60,28 @@ def get_robots(robot_confs):
         
 def get_worlds(world_conf):
     # print "world_conf", world_conf
-    world = world_conf["class"](world_conf)
-    return world
+    worlds = []
+    for i in range(1):
+        # print "i", type(i), i, world_conf
+        worlds.append(world_conf[i]["class"](world_conf[i]))
+    return worlds
 
 class Experiment(object):
     def __init__(self, args):
         self.configfile = args.conf
-        self.numsteps = args.numsteps
         self.conf = get_config_raw(self.configfile)
+        # precendence: conf, args overrides that
+        self.numsteps = self.conf["numsteps"]
+
+        if args.numsteps is not None:
+            self.numsteps = args.numsteps
+            
         # print "self.conf", self.conf
         self.loss = []
         self.task = []
         self.robots = []
         self.worlds = [] # index 0 convention, we will have _one_ world for a beginning
+        self.analyses = []
         self.prepare()
 
     def prepare(self):
@@ -84,7 +94,7 @@ class Experiment(object):
         # append task to robot
         # get world
         print "self.conf[\"worlds\"][0]", self.conf["worlds"][0]
-        self.worlds.append(get_worlds(self.conf["worlds"][0]))
+        self.worlds = get_worlds(self.conf["worlds"])
         self.worlds[0].add(self.robots)
         # append robot to world
         # finito
@@ -98,10 +108,20 @@ class Experiment(object):
         # IDEA: use a generic type "loop" which has a "step" method and a "stack" member
         #       stacks are ordered dicts/lists of "loops"
         for i in xrange(self.numsteps):
-            print "i = %d" % i
+            print "#" * 80
+            print "Experiment.run iter = %d" % i
             # 1. get sensors
             # 2. do brain
             # 3. do motors
             # 4. do world
             self.worlds[0].step()
             # 5. repeat
+
+        self.analyse()
+
+
+    def analyse(self):
+        print "%s.analyse(): implement me" % (self.__class__.__name__)
+        # for a in self.analyses:
+        #     a.run()
+            

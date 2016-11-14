@@ -23,6 +23,8 @@ def main(args):
     # print "args", args
     expr = Experiment(args)
 
+    # FIXME: logging
+    # FIXME: ROS
     expr.run()
     
 if __name__ == "__main__":
