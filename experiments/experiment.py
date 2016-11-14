@@ -16,7 +16,8 @@ Providing
  
 """
 
-from smq.experiment import get_args, Experiment
+from smq.experiments import get_args
+from smq.experiments import Experiment
 
 def main(args):
     # print "args", args
