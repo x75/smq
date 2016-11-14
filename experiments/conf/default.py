@@ -10,16 +10,19 @@ Brain: kinesis
  Loss: mean squared error
 """
 
+import time
 from smq.worlds import RobotWorld
 from smq.robots import PointmassRobot
+from smq.plot   import PlotTimeseries
 
 # local variables for re-use
-numsteps = 1000
+numsteps = 100
 
 # using dict convention seemed to be the best over yaml and friends
 conf = {
     # first level corresponds to experiment
     "numsteps": numsteps,
+    "id": "default-%s" % (time.strftime("%Y%m%d-%H%M%S")),
     # these are arrays of dicts specifying components
     "robots": [
         {"class": PointmassRobot,
@@ -43,6 +46,9 @@ conf = {
     "brain": "kinesis",
     "loss": "mse",
     "analyses": [
-        "plot_timeseries",
-        ],
+        {
+            "class": PlotTimeseries,
+            "name": "plot_timeseries",
+        },
+    ],
     }

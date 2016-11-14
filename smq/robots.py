@@ -149,8 +149,12 @@ class PointmassRobot(Robot):
         print "PointmassRobot.step x", x
         if x is None: # catch initial state
             self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
-        print "x", x
+        # print "x", x
         # 1. s = get sensors
+        s = x.copy()
         # 2. m = ask brain(s)
+        m = s + (np.random.binomial(3, 0.05) * 0.01)
         # 3. w = ask_world(m)
-        return self.x.reshape(self.mdim,)
+        # return self.x.reshape(self.mdim,)
+        self.y = m.reshape(self.mdim,)
+        return self.y

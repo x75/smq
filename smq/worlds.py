@@ -6,6 +6,8 @@ A world contains robots and an additional set of forces, objects, processes, age
 
 import numpy as np
 
+import smq.logging as log
+
 from robots import Robot
 
 class World(object):
@@ -23,7 +25,6 @@ class World(object):
     def step(self):
         self.time += self.dt
 
-
 class RobotWorld(World):
     def __init__(self, conf):
         World.__init__(self, conf)
@@ -39,7 +40,7 @@ class RobotWorld(World):
 
     def update_robot_f(self, x):
         """update function for a given robot, arg x is a robot instance"""
-        return x.x + np.random.normal(0, self.noise, x.x.shape)
+        return x.y + np.random.normal(0, self.noise, x.y.shape)
         
     # def add_robots(self, robots):
     #     for i, robot in enumerate(robots):
@@ -50,12 +51,13 @@ class RobotWorld(World):
         # print "self.time", self.time
         # Y = []
         for i,robot in enumerate(self.robots):
-            # print "robot", robot
-            # step robot, returns y (motor vector, or body state description)
+            # update (step) robot, returns y (motor vector, or proprio description)
             # FIXME: this is awkward, rather get/set x directly from outside
             y = robot.step(robot.x)
-            # print "self.update_robot[i]", self.update_robot, i
+            # update robot's state by interaction with world
             robot.x = self.update_robot[i](robot)
+            # 
+            log.log(robot.conf["name"], np.vstack((robot.x, robot.y)))
             
         # Y = np.array(Y)
         # self.X = self.update(Y)
@@ -74,5 +76,6 @@ class RobotWorld(World):
                     print "it's a robot"
                     self.robots.append(item)
                     self.update_robot.append(self.update_robot_f)
+                    log.init_log2_block(item.conf["name"], item.sdim + item.mdim)
         else:
             print self.__class__.__name__, "add(): requires list"

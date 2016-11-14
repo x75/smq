@@ -10,7 +10,7 @@ import argparse
 # available robots: pointmass, simple arm, two-wheeled differential, ...
 
 from smq.worlds import RobotWorld
-from smq.logging import Logger
+import smq.logging as log
 
 ################################################################################
 # from im/im_quadrotor_controller
@@ -50,6 +50,13 @@ def get_config_raw(conf):
 
     return conf
 
+def get_analyses(analyses_confs):
+    analyses = []
+    for i, analysis_conf in enumerate(analyses_confs):
+        # print "i, robot_conf", i, robot_conf["class"]
+        analyses.append(analysis_conf["class"](analysis_conf))
+    return analyses
+        
 def get_robots(robot_confs):
     # print "robot_confs", robot_confs
     robots = []
@@ -65,6 +72,15 @@ def get_worlds(world_conf):
         # print "i", type(i), i, world_conf
         worlds.append(world_conf[i]["class"](world_conf[i]))
     return worlds
+
+def make_expr_sig(args =  None):
+    """create experiment signature string from args and timestamp"""
+    import time
+    # print ("make_expr_sig", args)
+    # infile = args.infile.replace("/", "_").replace(".wav", "")
+    # expr_sig = "MN%s_MS%d_IF%s_IS%d_NE%d_EL%d_TS%s" % (args.mode, args.modelsize, infile, args.samplelen, args.numepochs, args.embedding_length, time.strftime("%Y%m%d-%H%M%S"))
+    expr_sig = time.strftime("%Y%m%d-%H%M%S")
+    return expr_sig
 
 class Experiment(object):
     def __init__(self, args):
@@ -82,8 +98,16 @@ class Experiment(object):
         self.robots = []
         self.worlds = [] # index 0 convention, we will have _one_ world for a beginning
         self.analyses = []
+
+        # initialize global logging
+        log.init_log2(self.conf)
+        
+        # initialize parts from config
         self.prepare()
 
+        # experiment signature
+        # self.conf["signature"] = make_expr_sig(self.conf)
+        
     def prepare(self):
         """prepare the experiment: construct everything we need from the config"""
         # get task
@@ -97,6 +121,8 @@ class Experiment(object):
         self.worlds = get_worlds(self.conf["worlds"])
         self.worlds[0].add(self.robots)
         # append robot to world
+        # append analyses
+        self.analyses = get_analyses(self.conf["analyses"])
         # finito
                 
     def run(self):
@@ -115,13 +141,14 @@ class Experiment(object):
             # 3. do motors
             # 4. do world
             self.worlds[0].step()
-            # 5. repeat
+            # 5. log
+            # 6. repeat
 
         self.analyse()
 
 
     def analyse(self):
-        print "%s.analyse(): implement me" % (self.__class__.__name__)
-        # for a in self.analyses:
-        #     a.run()
+        # print "%s.analyse(): implement me" % (self.__class__.__name__)
+        for a in self.analyses:
+            a.run()
             
