@@ -11,20 +11,26 @@ Brain: kinesis
 """
 
 from smq.worlds import RobotWorld
-from smq.robots import Pointmass
+from smq.robots import PointmassRobot
+
+# local variables for re-use
+numsteps = 1000
 
 # using dict convention seemed to be the best over yaml and friends
 conf = {
     "robots": [
-        {"class": Pointmass,
+        {"class": PointmassRobot,
+         "type": "explauto",
          "dim": 1,
+         "numsteps": numsteps,
          "control": "kinematic"
         }
     ],
     "worlds": [
         {"class": RobotWorld,
          "dt": 0.1,
-         "map": "open_planar_isotropic"
+         "map": "open_planar_isotropic",
+         "dim": 0,
         }
     ],
     "task": "setpoint",

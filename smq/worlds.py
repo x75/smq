@@ -4,13 +4,21 @@ A world contains robots and an additional set of forces, objects, processes, age
 
 """
 
+import numpy as np
+
 from robots import Robot
 
 class World(object):
     def __init__(self, conf):
-        self.conf = conf
-        self.time = 0
-        self.dt   = self.conf["dt"]
+        self.conf  = conf
+        self.time  = 0
+        self.dt    = self.conf["dt"]
+        self.dim   = self.conf["dim"]
+        # world state: state of world minus robots themselves
+        self.state = np.zeros((1, self.dim)).T
+        self.x = {
+            "world": self.state,
+            }
 
     def step(self):
         self.time += self.dt
@@ -20,6 +28,9 @@ class RobotWorld(World):
     def __init__(self, conf):
         World.__init__(self, conf)
         self.robots = []
+        self.update = lambda x: x # identity
+        # self.X = np.zeros((1, self.dim )).T
+        self.X = None
 
     def add_robots(self, robots):
         for robot in robots:
@@ -27,9 +38,14 @@ class RobotWorld(World):
 
     def step(self):
         # print "self.time", self.time
+        Y = []
         for robot in self.robots:
             # print "robot", robot
-            robot.step()
+            # step robot, returns y (motor vector, or body state description)
+            Y.append(robot.step(self.X))
+        Y = np.array(Y)
+        self.X = self.update(Y)
+        print "RobotWorld.step X", self.X
         self.time += self.dt
 
     def add(self, items):
