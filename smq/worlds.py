@@ -38,9 +38,13 @@ class RobotWorld(World):
         # noisyness?
         self.noise = 1e-3
 
-    def update_robot_f(self, x):
+    def update_robot_f(self, robot):
         """update function for a given robot, arg x is a robot instance"""
-        return x.y + np.random.normal(0, self.noise, x.y.shape)
+        return robot.y + np.random.normal(0, self.noise, robot.y.shape)
+
+    def update_robot_f_2(self, robot):
+        """update/interaction function"""
+        return robot.interact(robot.y)
         
     def step(self):
         """one time step world update"""
@@ -51,7 +55,9 @@ class RobotWorld(World):
             # FIXME: this is awkward, rather get/set x directly from outside
             y = robot.step(robot.x)
             # update robot's state by interaction with world
-            robot.x = self.update_robot[i](robot)
+            robot.x = self.update_robot[i](robot)[1] # FIXME
+            # debug
+            print "x,y", robot.x, robot.y
             # log all robot module data for current timestep
             log.log(robot.conf["name"], np.vstack((robot.x, robot.y)))
             
@@ -69,7 +75,7 @@ class RobotWorld(World):
                 if isinstance(item, Robot):
                     print "it's a robot"
                     self.robots.append(item)
-                    self.update_robot.append(self.update_robot_f)
+                    self.update_robot.append(self.update_robot_f_2)
                     log.init_log2_block(item.conf["name"], item.sdim + item.mdim)
         else:
             print self.__class__.__name__, "add(): requires list"

@@ -188,7 +188,11 @@ class PointmassRobot(Robot):
             print "self.env", self.env
         
     def step(self, x):
-        """step the robot: input is vector of new information $x$ from the world"""
+        """step the robot:
+input is vector of new information $x$ from the world
+
+essentially: step the robot brain
+"""
         print "PointmassRobot.step x", x
         if x is None: # catch initial state
             self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
@@ -202,4 +206,11 @@ class PointmassRobot(Robot):
         # 3. w = ask_world(m)
         # return self.x.reshape(self.mdim,)
         self.y = m.reshape(self.mdim,)
+        # return brain answer
         return self.y
+
+    def interact(self, action):
+        """let the body and forces induced by the robots actions interact with the world"""
+        self.x = self.env.compute_sensori_effect(action)
+        print "x_", self.x.shape
+        return self.x
