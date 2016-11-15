@@ -2,6 +2,7 @@
 
 A robot contains a body, defined set of internal states, given brain, ...
 
+(c) 2016 Oswald Berthold
 """
 
 # Implementations:
@@ -95,7 +96,9 @@ def make_args_from_(conf):
     from argparse import Namespace
     args = Namespace()
 
-    if conf["class"].__name__.startswith("Pointmass"):
+    if conf["class"].__name__.startswith("PointmassRobot"):
+        system = "pointmass"
+    elif conf["class"].__name__.startswith("SimpleRandomRobot"):
         system = "pointmass"
         
     if conf["mdim"] == 1:
@@ -120,7 +123,7 @@ class Robot(object):
     def step(self):
         pass
 
-class PointmassRobot(Robot):
+class SimpleRandomRobot(Robot):
     def __init__(self, conf):
         self.conf = conf
         print "PointmassRobot.conf", self.conf
@@ -154,6 +157,48 @@ class PointmassRobot(Robot):
         s = x.copy()
         # 2. m = ask brain(s)
         m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
+        # 3. w = ask_world(m)
+        # return self.x.reshape(self.mdim,)
+        self.y = m.reshape(self.mdim,)
+        return self.y
+    
+class PointmassRobot(Robot):
+    def __init__(self, conf):
+        self.conf = conf
+        print "PointmassRobot.conf", self.conf
+        # print "PointmassRobot.conf", conf
+        # make args from conf needing numsteps, system, sysdim
+        Robot.__init__(self, self.conf)
+        # ROS
+        if self.conf["ros"] is True:
+            import rospy
+            rospy.init_node("%s" % self.conf["name"])
+        self.x = np.zeros((self.sdim, 1))
+        self.y = np.zeros((self.mdim, 1))
+        
+        if self.conf["type"] == "explauto":
+            # print "expl"
+            args = make_args_from_(self.conf)
+            self.env = get_context_environment(args)
+            print "dir(self.env)", dir(self.env)
+            # print "env_cls", env_cls
+            # print "env_conf", env_conf
+            # reset environment
+            self.env.reset()
+            print "self.env", self.env
+        
+    def step(self, x):
+        """step the robot: input is vector of new information $x$ from the world"""
+        print "PointmassRobot.step x", x
+        if x is None: # catch initial state
+            self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
+        # print "x", x
+        # 1. s = get sensors
+        s = x.copy()
+        # 2. m = ask brain(s)
+        m = self.env.compute_motor_command(np.random.uniform(-0.1, 0.1, (self.mdim, 1)))
+        print "m", m
+        # m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)
         # return self.x.reshape(self.mdim,)
         self.y = m.reshape(self.mdim,)

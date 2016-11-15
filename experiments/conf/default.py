@@ -12,7 +12,7 @@ Brain: kinesis
 
 import time
 from smq.worlds import RobotWorld
-from smq.robots import PointmassRobot
+from smq.robots import SimpleRandomRobot, PointmassRobot
 from smq.plot   import PlotTimeseries
 
 # local variables for re-use
@@ -25,7 +25,7 @@ conf = {
     "id": "default-%s" % (time.strftime("%Y%m%d-%H%M%S")),
     # these are arrays of dicts specifying components
     "robots": [
-        {"class": PointmassRobot,
+        {"class": PointmassRobot, # SimpleRandomRobot,
          "type": "explauto",
          "name": "pm",
          "sdim": 1, # sensor dim
@@ -48,7 +48,7 @@ conf = {
     "analyses": [
         {
             "class": PlotTimeseries,
-            "name": "plot_timeseries",
+            "name": "plottimeseries",
         },
     ],
     }

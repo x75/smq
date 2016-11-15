@@ -22,11 +22,11 @@ from smq.experiments import get_args
 from smq.experiments import Experiment
 
 def main(args):
-    # print "args", args
+    # create experiment
     expr = Experiment(args)
 
-    # FIXME: logging
     # FIXME: ROS
+    # run experiment
     expr.run()
     
 if __name__ == "__main__":

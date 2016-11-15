@@ -42,12 +42,8 @@ class RobotWorld(World):
         """update function for a given robot, arg x is a robot instance"""
         return x.y + np.random.normal(0, self.noise, x.y.shape)
         
-    # def add_robots(self, robots):
-    #     for i, robot in enumerate(robots):
-    #         self.robots.append({"robot": robot})
-    #         self.update_robot.append(lambda x: x.x)
-
     def step(self):
+        """one time step world update"""
         # print "self.time", self.time
         # Y = []
         for i,robot in enumerate(self.robots):
@@ -56,12 +52,10 @@ class RobotWorld(World):
             y = robot.step(robot.x)
             # update robot's state by interaction with world
             robot.x = self.update_robot[i](robot)
-            # 
+            # log all robot module data for current timestep
             log.log(robot.conf["name"], np.vstack((robot.x, robot.y)))
             
-        # Y = np.array(Y)
-        # self.X = self.update(Y)
-        # print "RobotWorld.step X", self.X
+        # update time
         self.time += self.dt
 
     def add(self, items):
