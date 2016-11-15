@@ -42,24 +42,42 @@ class RobotWorld(World):
         """update function for a given robot, arg x is a robot instance"""
         return robot.y + np.random.normal(0, self.noise, robot.y.shape)
 
-    def update_robot_f_2(self, robot):
+    def update_robot_f_2(self, robot, prediction):
         """update/interaction function"""
-        return robot.interact(robot.y)
+        x_full = robot.update(prediction)
+        # x_full has dim = 2 * sdim, context and current, explauto hack
+        return x_full[(robot.dim_s_proprio + robot.dim_s_extero):]
         
     def step(self):
         """one time step world update"""
         # print "self.time", self.time
         # Y = []
-        for i,robot in enumerate(self.robots):
+        for i,robotdict in enumerate(self.robots):
+            # temporary helpers
+            robot = robotdict["robot"]
+            robin = robotdict["input"]
+            # debug
+            # print "robin.shape", robin.shape, robin
+            
             # update (step) robot, returns y (motor vector, or proprio description)
             # FIXME: this is awkward, rather get/set x directly from outside
-            y = robot.step(robot.x)
+            y = robot.step(robin)
+            # now action is out in the world
+            
             # update robot's state by interaction with world
-            robot.x = self.update_robot[i](robot)[1] # FIXME
+            robotdict["input"] = self.update_robot[i](robot, y) # FIXME
+            # TODO: self.update_world(), maybe does something with the input
+            # task: tasks and robots are synchronised arrays so we use common loop
+            # evaluate task and use feedback as sensors for robot/brain
             # debug
-            print "x,y", robot.x, robot.y
+            # print "robotdict[\"input\"].shape", robotdict["input"].shape, robotdict["input"]
+            # print "robot.x.shape = %s, %s" % (robot.x.shape, robot.x)
+            # print "robot.y.shape = %s, %s" % (robot.y.shape, robot.y)
             # log all robot module data for current timestep
-            log.log(robot.conf["name"], np.vstack((robot.x, robot.y)))
+            # logdata = np.atleast_2d(np.hstack((robot.x, robot.y))).T
+            logdata = robot.get_logdata()
+            # print "logdata.shape", logdata.shape
+            log.log(robot.conf["name"], logdata)
             
         # update time
         self.time += self.dt
@@ -74,8 +92,8 @@ class RobotWorld(World):
                 # print "item #%d" % i
                 if isinstance(item, Robot):
                     print "it's a robot"
-                    self.robots.append(item)
+                    self.robots.append({"robot": item, "input": np.zeros((item.dim_s_proprio + item.dim_s_extero, 1))})
                     self.update_robot.append(self.update_robot_f_2)
-                    log.init_log2_block(item.conf["name"], item.sdim + item.mdim)
+                    log.init_log2_block(item.conf["name"], item.dim)
         else:
             print self.__class__.__name__, "add(): requires list"

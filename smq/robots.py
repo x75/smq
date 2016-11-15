@@ -23,6 +23,9 @@ A robot contains a body, defined set of internal states, given brain, ...
 # TODO: pm, sa, random, sphero, morse, nao, ...
 
 import numpy as np
+from collections import OrderedDict
+
+from smq.utils import get_items
 
 #######################################################################
 # copied from smp.environments, methods for constructing explauto based
@@ -58,7 +61,7 @@ def get_context_environment_pointmass(args):
     env_cls = PointmassEnvironment
     
     if args.sysdim == "low":
-        env_conf_str = "low_dim_vel"
+        env_conf_str = "low_dim_acc_vel"
         # env_conf_str = "low_dim_full"
     elif args.sysdim == "mid":
         env_conf_str = "mid_dim_vel"
@@ -101,11 +104,11 @@ def make_args_from_(conf):
     elif conf["class"].__name__.startswith("SimpleRandomRobot"):
         system = "pointmass"
         
-    if conf["mdim"] == 1:
+    if len(conf["dim_s_motor"]) == 1:
         sysdim = "low"
-    elif conf["mdim"] == 3:
+    elif len(conf["dim_s_motor"]) in range(2,10):
         sysdim = "mid"
-    elif conf["mdim"] == 10:
+    elif len(conf["dim_s_motor"]) >= 10:
         sysdim = "high"
     
     setattr(args, "system", system)
@@ -117,10 +120,41 @@ class Robot(object):
     def __init__(self, conf):
         self.conf = conf
         # yeah, which dim: DoF sensorimotor, DoF locomotion, sensor dim, motor dim, ...
-        self.sdim   = self.conf["sdim"]
-        self.mdim   = self.conf["mdim"]
+        self.dim    = 0
+        self.dimnames = []
+        self.smdict = OrderedDict()
+        self.smstruct = ["dim_s_proprio", "dim_s_extero", "dim_s_intero", "dim_s_reward", "dim_s_pred", "dim_s_motor"]
+        self.smattrs  = ["dim", "dimnames", "smdict", "smstruct", "sm", "smattrs"]
+        
+        # more differentiated sm space description
+        for k in self.smstruct:
+            dim_ = len(conf[k])
+            setattr(self, k, dim_)
+            self.dim += dim_
+            for dimname in conf[k]:
+                self.dimnames.append(dimname)
+            k_ = k.replace("dim_", "")
+            self.smdict[k_] = np.zeros((dim_, 1))
+        self.smdict_concat = [None for i in range(self.dim)]
+        
+        print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
+        self.sm = np.zeros((self.dim, 1)) # full sensorimotor vector, use dict?
 
+        # brains, only one
+        for attr in self.smattrs:
+            # print attr, getattr(self, attr)
+            self.conf["brains"][0][attr] = getattr(self, attr)
+        # print self.conf["brains"]
+        self.brains = get_items(self.conf["brains"])
+        assert(len(self.brains) == 1) # not ready for that yet
+                
     def step(self):
+        """execute one time-step, this refers to updating robot brain with
+        new sensor data and producing a prediction"""
+        pass
+
+    def update(self, prediction):
+        """update the robot/system by 'executing' the prediction"""
         pass
 
 class SimpleRandomRobot(Robot):
@@ -134,8 +168,8 @@ class SimpleRandomRobot(Robot):
         if self.conf["ros"] is True:
             import rospy
             rospy.init_node("%s" % self.conf["name"])
-        self.x = np.zeros((self.sdim, 1))
-        self.y = np.zeros((self.mdim, 1))
+        self.x = np.zeros((self.dim_s_proprio, 1))
+        self.y = np.zeros((self.dim_s_motor, 1))
         
         if self.conf["type"] == "explauto":
             # print "expl"
@@ -151,7 +185,7 @@ class SimpleRandomRobot(Robot):
         """step the robot: input is vector of new information $x$ from the world"""
         print "PointmassRobot.step x", x
         if x is None: # catch initial state
-            self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
+            self.x = np.random.uniform(-1.0, 1.0, (self.dim_s_proprio, 1))
         # print "x", x
         # 1. s = get sensors
         s = x.copy()
@@ -159,7 +193,7 @@ class SimpleRandomRobot(Robot):
         m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)
         # return self.x.reshape(self.mdim,)
-        self.y = m.reshape(self.mdim,)
+        self.y = m.reshape(self.dim_s_motor,)
         return self.y
     
 class PointmassRobot(Robot):
@@ -173,44 +207,80 @@ class PointmassRobot(Robot):
         if self.conf["ros"] is True:
             import rospy
             rospy.init_node("%s" % self.conf["name"])
-        self.x = np.zeros((self.sdim, 1))
-        self.y = np.zeros((self.mdim, 1))
+        # robot i/o data, FIXME: pack it all into dictionary
+        # self.x = np.zeros((self.sdim, 1))
+        # self.y = np.zeros((self.mdim, 1))
         
         if self.conf["type"] == "explauto":
             # print "expl"
             args = make_args_from_(self.conf)
             self.env = get_context_environment(args)
-            print "dir(self.env)", dir(self.env)
+            # print "dir(self.env)", dir(self.env)
             # print "env_cls", env_cls
             # print "env_conf", env_conf
             # reset environment
             self.env.reset()
             print "self.env", self.env
+
+    def get_logdata_columns(self):
+        """collect all internal variables and their names and return ordered
+        list of names corresponding to order in sm vector"""
+        return self.dimnames
         
+    def get_logdata(self):
+        """collect all internal variables, stack them into one vector and
+        return that"""
+        # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
+        # acc, vel, pos, dist_goal, acc_pred, acc_motor
+        # for k in self.smdict.keys():
+        logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
+        # print "logdata", logdata
+        # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
+        return logdata
+            
     def step(self, x):
         """step the robot:
-input is vector of new information $x$ from the world
+        input is vector of new information $x$ from the world
 
-essentially: step the robot brain
-"""
-        print "PointmassRobot.step x", x
+        essentially: step the robot brain
+        """
+        # debug
+        print "%s.step x = %s" % (self.__class__.__name__, x.shape)
+        
+        # 1. get sensors
         if x is None: # catch initial state
-            self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
-        # print "x", x
-        # 1. s = get sensors
-        s = x.copy()
-        # 2. m = ask brain(s)
-        m = self.env.compute_motor_command(np.random.uniform(-0.1, 0.1, (self.mdim, 1)))
-        print "m", m
+            # self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
+            self.smdict["s_proprio"] = np.random.uniform(-1.0, 1.0, (self.dim_s_proprio, 1))
+            self.smdict["s_extero"]  = np.random.uniform(-1.0, 1.0, (self.dim_s_extero,  1))
+        else:
+            self.smdict["s_proprio"] = x[self.dim_s_extero:].copy() # HACK?
+            self.smdict["s_extero"]  = x[:self.dim_s_extero].copy() # HACK?
+            
+        # 2. m = ask brain to fill in things, no brain yet but hey
+        for brain in self.brains:
+            # print "brain",i
+            brain.step(self.smdict)
+            prediction = brain.predict_proprio()
+            # print "prediction",prediction
+            # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
+        
+        m_ = self.env.compute_motor_command(prediction)
+        print m_.shape, m_
+        self.smdict["s_pred"] = m_
+        self.smdict["s_motor"] = m_.reshape(self.dim_s_motor,)
+        print "%s.step m = %s" % (self.__class__.__name__, self.smdict["s_motor"])
         # m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)
         # return self.x.reshape(self.mdim,)
-        self.y = m.reshape(self.mdim,)
+        # self.y = self.smdict["s_motor"].reshape(self.dim_s_motor,)
+        # print "dimcomaprison smdict[\"s_motor\"] vs. y", self.smdict["s_motor"].shape, self.y.shape
         # return brain answer
-        return self.y
+        return self.smdict["s_motor"]
 
-    def interact(self, action):
-        """let the body and forces induced by the robots actions interact with the world"""
-        self.x = self.env.compute_sensori_effect(action)
-        print "x_", self.x.shape
-        return self.x
+    def update(self, prediction):
+        """let the body and forces induced by the robot's predictions interact with the world and yield effect"""
+        x_ = np.atleast_2d(self.env.compute_sensori_effect(prediction)).T
+        # self.x = self.env.update(prediction)
+        # x_ = self.env.update(prediction, reset=False)
+        # print "update: x_", x_.shape
+        return x_

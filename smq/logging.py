@@ -30,7 +30,7 @@ def init_log2(config):
     # experiment_name = config.keys()[0]
     experiment = "%s" % (config["id"]) # , ts)
     tblfile = "data/%s.h5" % (experiment)
-    h5file  = tb.open_file(tblfile, mode = "w")
+    h5file  = tb.open_file(tblfile, mode = "w", title = "%s" % (experiment))
     root = h5file.root
     storage_version = "v2"
 
@@ -57,12 +57,12 @@ def init_log2(config):
     loginit = True
     print("initlog done")
 
-def init_log2_block(blockid, blockodim):
-    print("init_log2_block", blockid, blockodim)
+def init_log2_block(tbl_name, tbl_dim, tbl_columns = None):
+    print("init_log2_block", tbl_name, tbl_dim)
     global loginit, h5file, lognodes
     if loginit:
         a = tb.Float64Atom()
-        lognodes[blockid] = h5file.create_earray(h5file.root, "item_%s_data" % (blockid), a, (blockodim, 0))
+        lognodes[tbl_name] = h5file.create_earray(h5file.root, "item_%s_data" % (tbl_name), a, (tbl_dim, 0))
         
 def log(nodeid, data):
     """Global logging method, like in python logging: take data, write into corresponding array"""

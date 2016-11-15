@@ -9,6 +9,7 @@ import argparse
 # from robots import ...
 # available robots: pointmass, simple arm, two-wheeled differential, ...
 
+from smq.utils  import get_items
 from smq.worlds import RobotWorld
 import smq.logging as log
 
@@ -50,29 +51,6 @@ def get_config_raw(conf):
 
     return conf
 
-def get_analyses(analyses_confs):
-    analyses = []
-    for i, analysis_conf in enumerate(analyses_confs):
-        # print "i, robot_conf", i, robot_conf["class"]
-        analyses.append(analysis_conf["class"](analysis_conf))
-    return analyses
-        
-def get_robots(robot_confs):
-    # print "robot_confs", robot_confs
-    robots = []
-    for i, robot_conf in enumerate(robot_confs):
-        # print "i, robot_conf", i, robot_conf["class"]
-        robots.append(robot_conf["class"](robot_conf))
-    return robots
-        
-def get_worlds(world_conf):
-    # print "world_conf", world_conf
-    worlds = []
-    for i in range(1):
-        # print "i", type(i), i, world_conf
-        worlds.append(world_conf[i]["class"](world_conf[i]))
-    return worlds
-
 def make_expr_sig(args =  None):
     """create experiment signature string from args and timestamp"""
     import time
@@ -93,6 +71,7 @@ class Experiment(object):
             self.numsteps = args.numsteps
             
         # print "self.conf", self.conf
+        self.brains = []
         self.loss = []
         self.task = []
         self.robots = []
@@ -110,19 +89,23 @@ class Experiment(object):
         
     def prepare(self):
         """prepare the experiment: construct everything we need from the config"""
+        # get brain
+        # self.brains = get_items(self.conf["brains"])
         # get task
+        # self.tasks  = get_items(self.conf["tasks"])
+        # print "self.tasks", self.tasks
         # get loss
         # append loss to task
         # get robot
-        self.robots = get_robots(self.conf["robots"])
+        self.robots = get_items(self.conf["robots"])
         # append task to robot
         # get world
         print "self.conf[\"worlds\"][0]", self.conf["worlds"][0]
-        self.worlds = get_worlds(self.conf["worlds"])
+        self.worlds = get_items(self.conf["worlds"])
         self.worlds[0].add(self.robots)
         # append robot to world
         # append analyses
-        self.analyses = get_analyses(self.conf["analyses"])
+        self.analyses = get_items(self.conf["analyses"])
         # finito
                 
     def run(self):
@@ -133,6 +116,9 @@ class Experiment(object):
         # ...
         # IDEA: use a generic type "loop" which has a "step" method and a "stack" member
         #       stacks are ordered dicts/lists of "loops"
+        #       examples: single episode learning, multi episode learning (value func prop),
+        #                 multi episode optimization (hpo, cma, evo, ...)
+        #                 infinite episode, ...
         for i in xrange(self.numsteps):
             print "#" * 80
             print "Experiment.run iter = %d" % i
@@ -151,4 +137,3 @@ class Experiment(object):
         # print "%s.analyse(): implement me" % (self.__class__.__name__)
         for a in self.analyses:
             a.run()
-            

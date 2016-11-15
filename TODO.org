@@ -1,0 +1,82 @@
+#+TITLE: smq todo foo
+
+#+OPTIONS: toc:nil
+
+* Items
+** TODO integration / robots lib
+
+use explauto or not?
+
+ideally, i would like to have a library of systems which can be equipped
+with wrappers for: explauto, ROS, ... probably using decorators
+
+** TODO experiment specification
+
+experiments.py
+
+FIXME: how to define experiment structure in conf for different
+example scenarios like:
+
+ -  single episode learning
+ -  multi episode learning (value func prop)
+ -  multi episode optimization (hpo, cma, evo, ...)
+ -  infinite episode, ...
+ -  single episode, single model, single task
+ -  single run multiple models single task
+ -  optimization run single model single task
+
+IDEA: use a generic type "loop" which has a "step" method and a
+"stack" member, stacks being ordered dicts/lists of "loops"
+
+** TODO high-level design qu's
+
+how to separate world, robot, task appropriately
+
+** TODO logging
+ - how logging and ros publishing is the same or not: ROS also
+   involves inputs whereas logging is only one-way
+ - logging/publishing decorators
+ - column names for tables
+
+** TODO tasks
+** TODO efus
+ - ultrastability
+ - explorer
+ - learner
+
+** TODO dynamic challenges
+
+ -  dynamic creation of new variables
+ -  dynamic length of run
+ -  dynamic structural changes
+
+** TODO neural networks
+ -  include tricks of the trade foo: input cleaning, square augmented ...
+ -  include deep learning foo
+
+** TODO testing
+
+do unit testing
+
+** TODO submodules
+
+which parts to do as submodules:
+ -  noiselib: uniform, gaussian, binomial, pareto, ...
+ -  learnlib: rls, force, eh, iso, ...
+ -   losslib: mse, mae, pi, ais, ...
+ -  analylib: plot timeseries, plot histograms, plot hexbin, plot
+            dimstack, scattermatrix, ...
+
+** DONE dimensions
+
+what is system, what is robot, what are dimensions, do proper spec of
+ - proprioceptive
+ - exteroceptive
+ - interoceptive
+ - reward system: pain, pleasure, hunger, ...
+** DONE Filesystem
+
+Separate the core component lib from the actual experiments,
+specification, and logging data.
+
+Put that into smp_experiments.

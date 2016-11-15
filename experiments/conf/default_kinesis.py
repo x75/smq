@@ -14,8 +14,8 @@ import time
 from smq.worlds import RobotWorld
 from smq.robots import SimpleRandomRobot, PointmassRobot
 from smq.plot   import PlotTimeseries
-from smq.tasks  import NullTask, SetpointTask
-from smq.brains import NullBrain
+from smq.tasks  import NullTask, SetpointTask, GoalTask
+from smq.brains import NullBrain, KinesisBrain
 
 # local variables for re-use
 numsteps = 1000
@@ -37,7 +37,7 @@ conf = {
             # actually: make that lists of names whose length is the dim
             "dim_s_proprio": ["acc"],
             "dim_s_extero": ["vel"],
-            "dim_s_intero": ["vel_", "pos_"],
+            "dim_s_intero": ["vel_", "pos_", "vel_goal"],
             "dim_s_reward": ["dist_goal"],
             "dim_s_pred": ["\hat acc"],
             "dim_s_motor": ["m"] * motors,
@@ -46,14 +46,15 @@ conf = {
             "ros": False,
             "brains": [
                 {
-                    "class": NullBrain,
-                    "name": "nullbrain",
+                    "class": KinesisBrain,
+                    "name": "kinesisbrain",
                     "dim_s_motor": motors,
                     # tasks be of length either one or same as len(robots)
                     "tasks": [
                         {
-                            "class": NullTask,
-                            "name": "nulltask",
+                            "class": GoalTask,
+                            "name": "goaltask",
+                            "goalspace": "extero",
                             "loss": "mse",
                         }
                     ],
