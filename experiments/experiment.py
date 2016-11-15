@@ -3,6 +3,8 @@ Experiment shell to use to run any experiment in smq
 
 (c) 2016 Oswald Berthold
 
+FIXME: separate into lib and experiments
+
 Requiring
  - configuration: a config file which is itself a python file which is loaded
    and evaluated and fully specifies the experiment

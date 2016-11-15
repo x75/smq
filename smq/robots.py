@@ -153,7 +153,7 @@ class PointmassRobot(Robot):
         # 1. s = get sensors
         s = x.copy()
         # 2. m = ask brain(s)
-        m = s + (np.random.binomial(3, 0.05) * 0.01)
+        m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)
         # return self.x.reshape(self.mdim,)
         self.y = m.reshape(self.mdim,)
