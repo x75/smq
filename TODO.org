@@ -3,6 +3,15 @@
 #+OPTIONS: toc:nil
 
 * Items
+** TODO sm space partition order
+
+make sure that the order of sm space partitions is consistent with
+respect to smdict keys etc
+
+** TODO failsafe
+
+make failsafe checks for configuration consistency
+
 ** TODO integration / robots lib
 
 use explauto or not?

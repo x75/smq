@@ -259,7 +259,7 @@ class PointmassRobot(Robot):
         # 2. m = ask brain to fill in things, no brain yet but hey
         for brain in self.brains:
             # print "brain",i
-            brain.step(self.smdict)
+            self.smdict = brain.step(self.smdict)
             prediction = brain.predict_proprio()
             # print "prediction",prediction
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))

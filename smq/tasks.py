@@ -8,14 +8,12 @@ class Task(object):
 
     def eval(self, x):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
-        return 0
-
-
+        x["s_reward"][0,0] = 0
+        return x
             
 class NullTask(Task):
     def __init__(self, conf):
         Task.__init__(self, conf)
-        
             
 class SetpointTask(Task):
     def __init__(self, conf):
@@ -31,4 +29,8 @@ class GoalTask(Task):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
         loss = np.square(x["s_extero"] - self.goal)
         # print "loss", loss
-        return loss
+        x["s_reward"][0,0] = loss
+        x["s_intero"][2] = self.goal # FIXME: hard-coded index?
+        print "Task eval", x
+        return x
+    

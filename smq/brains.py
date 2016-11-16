@@ -32,6 +32,7 @@ class Brain(object):
 
         # copy sm structure from robot
         for attr in conf["smattrs"]:
+            print attr, conf[attr]
             setattr(self, attr, conf[attr])
         for attr in conf["smdict"].keys():
             # print "dim_" + attr, conf["smdict"][attr].shape[0]
@@ -53,13 +54,16 @@ class Brain(object):
             self.smdict["s_extero"]  = x["s_extero"].copy() # HACK?
 
         for i,task in enumerate(self.tasks):
-            self.smdict["s_reward"][i,0] = task.eval(self.smdict)
+            # self.smdict["s_reward"][i,0] = task.eval(self.smdict)
             # HACK
-            self.smdict["s_intero"][2] = task.goal
-
+            # self.smdict["s_intero"][2] = task.goal
+            self.smdict = task.eval(self.smdict)
+        # return 
+             
     def predict_proprio(self):
         """By definition proprio space is identical to motor space?"""
         # return self.x[:-self.dim_s_motor]
+        print "self.smdict[\"s_pred\"]", self.smdict
         self.smdict["s_pred"] = np.zeros((1, self.dim_s_motor))
         return self.smdict["s_pred"]
 
