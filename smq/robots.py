@@ -256,16 +256,19 @@ class PointmassRobot(Robot):
             self.smdict["s_proprio"] = x[self.dim_s_extero:].copy() # HACK?
             self.smdict["s_extero"]  = x[:self.dim_s_extero].copy() # HACK?
             
+        print "s_pred 1", self.smdict["s_pred"]
         # 2. m = ask brain to fill in things, no brain yet but hey
         for brain in self.brains:
             # print "brain",i
             self.smdict = brain.step(self.smdict)
+            print "s_pred 2", self.smdict["s_pred"]
             prediction = brain.predict_proprio()
             # print "prediction",prediction
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
         
+        print "s_pred 3", self.smdict["s_pred"]
         m_ = self.env.compute_motor_command(prediction)
-        print m_.shape, m_
+        # print m_.shape, m_, "s_pred", self.smdict["s_pred"]
         self.smdict["s_pred"] = m_
         self.smdict["s_motor"] = m_.reshape(self.dim_s_motor,)
         print "%s.step m = %s" % (self.__class__.__name__, self.smdict["s_motor"])

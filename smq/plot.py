@@ -17,14 +17,18 @@ class PlotTimeseries(object):
         # print type(item)
         # print "log.h5file.root.item_pm_data", log.h5file.root.item_pm_data.read()
         data = log.h5file.root.item_pm_data.read()
-        
+        print "data.shape", data.shape
         pl.ioff()
         pl.suptitle("Experiment %s" % (log.h5file.title))
-        pl.subplot(121)
-        pl.plot(data.T)
+        for i,datum in enumerate(data):
+            pl.subplot(data.shape[0], 2, (i*2)+1)
+            pl.plot(datum)
         pl.xlabel("t [steps]")
         pl.legend(["acc_p", "vel_e", "vel_", "pos_", "vel_goal", "dist_goal", "acc_pred", "m"])
         pl.subplot(122)
-        pl.hist(data.T, bins=20, orientation="horizontal")
+        for i,datum in enumerate(data):
+            pl.subplot(data.shape[0], 2, (i*2)+2)
+            pl.hist(datum, bins=20, orientation="horizontal")
+        # pl.hist(data.T, bins=20, orientation="horizontal")
         pl.xlabel("counts")
         pl.show()

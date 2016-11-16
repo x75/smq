@@ -1,3 +1,8 @@
+"""Brains ...
+
+like: NullBrain, KinesisBrain, TaxisBrain, LearningBrain, ...
+
+"""
 
 import numpy as np
 
@@ -58,7 +63,7 @@ class Brain(object):
             # HACK
             # self.smdict["s_intero"][2] = task.goal
             self.smdict = task.eval(self.smdict)
-        # return 
+        return x
              
     def predict_proprio(self):
         """By definition proprio space is identical to motor space?"""

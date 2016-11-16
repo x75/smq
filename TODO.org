@@ -3,6 +3,26 @@
 #+OPTIONS: toc:nil
 
 * Items
+** TODO fix plotting
+ - plotting proper from prototype: switch to pandas dataframes as structured arrays seem weird
+
+** TODO add worlds
+*** TODO pointmass world
+  - add force fields
+  - add structure and obstacles
+
+** TODO add robots
+ - arm
+ - stdr
+ - sphero
+ - cartpole
+
+** TODO add brains
+ - x kinesis
+ - taxis
+ - learning from kinesis
+ - im, imol, actinf, eh, iso, ...
+
 ** TODO sm space partition order
 
 make sure that the order of sm space partitions is consistent with
