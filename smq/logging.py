@@ -23,6 +23,8 @@ h5file = 0
 loginit = True
 lognodes = {}
 
+################################################################################
+# raw tables logging
 def init_log2(config):
     """second attempt at log init function: called from Blockspy3 init, triggered by topblock arg of Blockspy3"""
     global h5file, loginit, lognodes
@@ -72,3 +74,30 @@ def log(nodeid, data):
     # print("lognode", lognodes[nodeid])
     # print("data shape", data.shape)
     lognodes[nodeid].append(data)
+
+################################################################################
+# pandas based logging
+import pandas as pd
+
+log_store = 0
+log_lognodes = {}
+log_lognodes_idx = {}
+
+def init_log3(config):
+    global log_store
+    experiment = "%s" % (config["id"])
+    log_store = pd.HDFStore("data/%s_pd.h5" % (experiment))
+
+def init_log3_block(tbl_name, tbl_dim, tbl_columns = None, numsteps=100):
+    global log_store, log_lognodes
+    print "adding %s to log_lognodes with columns %s" % (tbl_name, tbl_columns)
+    log_lognodes[tbl_name] = pd.DataFrame(columns=tbl_columns, index = range(numsteps))
+    log_lognodes_idx[tbl_name] = 0
+
+def log3(nodeid, data):
+    global log_lognodes, log_lognodes_idx
+    print "data.shape", data.flatten().shape, log_lognodes_idx[nodeid]
+    log_lognodes[nodeid].loc[log_lognodes_idx[nodeid]] = data.flatten()
+    # log_lognodes[nodeid].loc[0] = 1
+    # print "log_lognodes[nodeid]", log_lognodes[nodeid].loc[0]
+    log_lognodes_idx[nodeid] += 1

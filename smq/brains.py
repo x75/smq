@@ -84,13 +84,14 @@ class KinesisBrain(Brain):
 
     def predict_proprio(self):
         """By definition proprio space is identical to motor space?"""
+        # checking for the value of a reward is this brain's way of responding to the environment
         if self.smdict["s_reward"][0] > 0.02:
              self.smdict["s_pred"] = np.random.uniform(-1.5, 1.5, (1, self.dim_s_motor))
         else:
              self.smdict["s_pred"] = np.random.uniform(-0.01, 0.01, (1, self.dim_s_motor))
         err = self.smdict["s_reward"][0]
         # self.smdict["s_pred"] = np.random.uniform(-(np.sqrt(err)*2), np.sqrt(err)*2, (1, self.dim_s_motor))
-        return self.smdict["s_pred"]
+        return self.smdict["s_pred"].T
         
         
 # Identity, Random, MotorBabbling, ...

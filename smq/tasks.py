@@ -27,7 +27,7 @@ class GoalTask(Task):
 
     def eval(self, x):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
-        loss = np.square(x["s_extero"] - self.goal)
+        loss = np.sum(np.square(x["s_extero"] - self.goal))
         # print "loss", loss
         x["s_reward"][0,0] = loss
         x["s_intero"][2] = self.goal # FIXME: hard-coded index?

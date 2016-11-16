@@ -51,6 +51,14 @@ def get_config_raw(conf):
 
     return conf
 
+def set_config_defaults(conf):
+    """Try and set some reasonable defaults in case of inconsistent configurations"""
+    for analysis in conf["analyses"]:
+        # print analysis
+        if not analysis.has_key("type"):
+            analysis["type"] = "seaborn"
+    return conf
+
 def make_expr_sig(args =  None):
     """create experiment signature string from args and timestamp"""
     import time
@@ -64,6 +72,7 @@ class Experiment(object):
     def __init__(self, args):
         self.configfile = args.conf
         self.conf = get_config_raw(self.configfile)
+        self.conf = set_config_defaults(self.conf)
         # precendence: conf, args overrides that
         self.numsteps = self.conf["numsteps"]
 
@@ -80,6 +89,7 @@ class Experiment(object):
 
         # initialize global logging
         log.init_log2(self.conf)
+        log.init_log3(self.conf)
         
         # initialize parts from config
         self.prepare()
@@ -101,6 +111,7 @@ class Experiment(object):
         # append task to robot
         # get world
         print "self.conf[\"worlds\"][0]", self.conf["worlds"][0]
+        self.conf["worlds"][0]["numsteps"] = self.numsteps
         self.worlds = get_items(self.conf["worlds"])
         self.worlds[0].add(self.robots)
         # append robot to world

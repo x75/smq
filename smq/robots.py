@@ -63,10 +63,12 @@ def get_context_environment_pointmass(args):
     if args.sysdim == "low":
         env_conf_str = "low_dim_acc_vel"
         # env_conf_str = "low_dim_full"
+    elif args.sysdim == "planar":
+        env_conf_str = "planar_dim_acc_vel"
     elif args.sysdim == "mid":
-        env_conf_str = "mid_dim_vel"
+        env_conf_str = "mid_dim_acc_vel"
     elif args.sysdim == "high":
-        env_conf_str = "high_dim_vel"
+        env_conf_str = "high_dim_acc_vel"
     env_conf = environments['pointmass'][1][env_conf_str]
     return env_cls, env_conf
 
@@ -106,7 +108,9 @@ def make_args_from_(conf):
         
     if len(conf["dim_s_motor"]) == 1:
         sysdim = "low"
-    elif len(conf["dim_s_motor"]) in range(2,10):
+    elif len(conf["dim_s_motor"]) == 2:
+        sysdim = "planar"
+    elif len(conf["dim_s_motor"]) in range(3,10):
         sysdim = "mid"
     elif len(conf["dim_s_motor"]) >= 10:
         sysdim = "high"
@@ -122,19 +126,26 @@ class Robot(object):
         # yeah, which dim: DoF sensorimotor, DoF locomotion, sensor dim, motor dim, ...
         self.dim    = 0
         self.dimnames = []
+        # self.dimcolumns = []
         self.smdict = OrderedDict()
         self.smstruct = ["dim_s_proprio", "dim_s_extero", "dim_s_intero", "dim_s_reward", "dim_s_pred", "dim_s_motor"]
         self.smattrs  = ["dim", "dimnames", "smdict", "smstruct", "sm", "smattrs"]
         
         # more differentiated sm space description
         for k in self.smstruct:
+            # dim of that part is length of fields array
             dim_ = len(conf[k])
+            # set the class attribute
             setattr(self, k, dim_)
+            # count overall dims
             self.dim += dim_
+            
             for dimname in conf[k]:
                 self.dimnames.append(dimname)
             k_ = k.replace("dim_", "")
             self.smdict[k_] = np.zeros((dim_, 1))
+            # add raw field names
+            # self.dimcolumns.append(conf[k])
         self.smdict_concat = [None for i in range(self.dim)]
         
         print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
@@ -233,6 +244,8 @@ class PointmassRobot(Robot):
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
         # acc, vel, pos, dist_goal, acc_pred, acc_motor
         # for k in self.smdict.keys():
+        for k in self.smdict.keys():
+            print "self.smdict[%s]" % (k), self.smdict[k].shape
         logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
         # print "logdata", logdata
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
@@ -267,10 +280,10 @@ class PointmassRobot(Robot):
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
         
         print "s_pred 3", self.smdict["s_pred"]
-        m_ = self.env.compute_motor_command(prediction)
+        m_ = self.env.compute_motor_command(prediction.T)
         # print m_.shape, m_, "s_pred", self.smdict["s_pred"]
         self.smdict["s_pred"] = m_
-        self.smdict["s_motor"] = m_.reshape(self.dim_s_motor,)
+        self.smdict["s_motor"] = m_.reshape(self.dim_s_motor,1)
         print "%s.step m = %s" % (self.__class__.__name__, self.smdict["s_motor"])
         # m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)

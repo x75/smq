@@ -12,10 +12,11 @@ from robots import Robot
 
 class World(object):
     def __init__(self, conf):
-        self.conf  = conf
-        self.time  = 0
-        self.dt    = self.conf["dt"]
-        self.dim   = self.conf["dim"]
+        self.conf     = conf
+        self.time     = 0
+        self.dt       = self.conf["dt"]
+        self.dim      = self.conf["dim"]
+        self.numsteps = self.conf["numsteps"]
         # world state: state of world minus robots themselves
         self.state = np.zeros((1, self.dim)).T
         self.x = {
@@ -78,6 +79,7 @@ class RobotWorld(World):
             logdata = robot.get_logdata()
             # print "logdata.shape", logdata.shape
             log.log(robot.conf["name"], logdata)
+            log.log3(robot.conf["name"], logdata)
             
         # update time
         self.time += self.dt
@@ -95,5 +97,9 @@ class RobotWorld(World):
                     self.robots.append({"robot": item, "input": np.zeros((item.dim_s_proprio + item.dim_s_extero, 1))})
                     self.update_robot.append(self.update_robot_f_2)
                     log.init_log2_block(item.conf["name"], item.dim)
+                    # columns = [getattr(item, a) for a in item.smstruct]
+                    columns = [a for a in item.dimnames]
+                    print "columns", columns
+                    log.init_log3_block(item.conf["name"], item.dim, tbl_columns = columns, numsteps = self.numsteps)
         else:
             print self.__class__.__name__, "add(): requires list"
