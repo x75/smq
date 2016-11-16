@@ -3,7 +3,7 @@
 A world contains robots and an additional set of forces, objects, processes, agents, and so on.
 
 """
-
+import time
 import numpy as np
 
 import smq.logging as log
@@ -78,8 +78,12 @@ class RobotWorld(World):
             # logdata = np.atleast_2d(np.hstack((robot.x, robot.y))).T
             logdata = robot.get_logdata()
             # print "logdata.shape", logdata.shape
+            now = time.time()
             log.log(robot.conf["name"], logdata)
+            print "log2 took %f s" % (time.time() - now)
+            now = time.time()
             log.log3(robot.conf["name"], logdata)
+            print "log3 took %f s" % (time.time() - now)
             
         # update time
         self.time += self.dt

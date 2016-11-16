@@ -90,8 +90,8 @@ class KinesisBrain(Brain):
         else:
              self.smdict["s_pred"] = np.random.uniform(-0.01, 0.01, (1, self.dim_s_motor))
         err = self.smdict["s_reward"][0]
-        # self.smdict["s_pred"] = np.random.uniform(-(np.sqrt(err)*2), np.sqrt(err)*2, (1, self.dim_s_motor))
-        return self.smdict["s_pred"].T
+        self.smdict["s_pred"] = np.random.uniform(-(np.sqrt(err)*10), np.sqrt(err)*10, (1, self.dim_s_motor))
+        return self.smdict["s_pred"]
         
         
 # Identity, Random, MotorBabbling, ...

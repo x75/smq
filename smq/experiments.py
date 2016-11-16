@@ -53,6 +53,12 @@ def get_config_raw(conf):
 
 def set_config_defaults(conf):
     """Try and set some reasonable defaults in case of inconsistent configurations"""
+    for robot in conf["robots"]:
+        for brain in robot["brains"]:
+            for task in brain["tasks"]:
+                if not task.has_key("goaldim"):
+                    task["goaldim"] = 1
+    
     for analysis in conf["analyses"]:
         # print analysis
         if not analysis.has_key("type"):
@@ -140,7 +146,10 @@ class Experiment(object):
             self.worlds[0].step()
             # 5. log
             # 6. repeat
-
+        # print "log.log_store", log.log_store
+        for k,v in log.log_lognodes.items():
+            print "k", k, "v", type(v)
+            log.log_store[k] = v
         self.analyse()
 
 

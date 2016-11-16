@@ -13,7 +13,7 @@ Brain: kinesis
 import time
 from smq.worlds import RobotWorld
 from smq.robots import SimpleRandomRobot, PointmassRobot
-from smq.plot   import PlotTimeseries
+from smq.plot   import PlotTimeseries, PlotTimeseries2D
 from smq.tasks  import NullTask, SetpointTask, GoalTask
 from smq.brains import NullBrain, KinesisBrain
 
@@ -21,6 +21,10 @@ from smq.brains import NullBrain, KinesisBrain
 numsteps = 1000
 motors   = 2
 name = "default_kinesis_2d"
+
+
+def make_column_names_numbered(base = "base", times = 1):
+    return ["%s%d" % (base, i) for i in range(times)]
 
 # using dict convention seemed to be the best over yaml and friends
 conf = {
@@ -36,12 +40,12 @@ conf = {
             # dimensions of different subparts of sm vector
             # make that more compact / automatically inferred
             # actually: make that lists of names whose length is the dim
-            "dim_s_proprio": ["acc"] * motors,
-            "dim_s_extero": ["vel"] * motors,
-            "dim_s_intero": ["vel_"] * motors + ["pos_"] * motors + ["vel_goal"] * motors,
+            "dim_s_proprio": make_column_names_numbered("acc", motors),
+            "dim_s_extero": make_column_names_numbered("vel", motors),
+            "dim_s_intero": make_column_names_numbered("vel_", motors) + make_column_names_numbered("pos_", motors) + make_column_names_numbered("vel_goal", motors),
             "dim_s_reward": ["dist_goal"],
-            "dim_s_pred": ["acc_pred"] * motors,
-            "dim_s_motor": ["m"] * motors,
+            "dim_s_pred": make_column_names_numbered("acc_pred", motors),
+            "dim_s_motor": make_column_names_numbered("m", motors),
             "numsteps": numsteps,
             "control": "force",
             "ros": False,
@@ -56,6 +60,7 @@ conf = {
                             "class": GoalTask,
                             "name": "goaltask",
                             "goalspace": "extero",
+                            "goaldim": motors,
                             "loss": "mse",
                         }
                     ],
@@ -74,9 +79,10 @@ conf = {
     "loss": "mse",
     "analyses": [
         {
-            "class": PlotTimeseries,
-            "name": "plottimeseries",
-            "type": "seaborn" # "pyplot"
+            "class": PlotTimeseries2D,
+            "name": "plottimeseries2d",
+            "type": "pyplot", # "seaborn",
+            "method": "run"
         },
     ],
     }

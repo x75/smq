@@ -91,12 +91,12 @@ def init_log3(config):
 def init_log3_block(tbl_name, tbl_dim, tbl_columns = None, numsteps=100):
     global log_store, log_lognodes
     print "adding %s to log_lognodes with columns %s" % (tbl_name, tbl_columns)
-    log_lognodes[tbl_name] = pd.DataFrame(columns=tbl_columns, index = range(numsteps))
+    log_lognodes[tbl_name] = pd.DataFrame(columns=tbl_columns, index = range(numsteps), dtype=float)
     log_lognodes_idx[tbl_name] = 0
 
 def log3(nodeid, data):
     global log_lognodes, log_lognodes_idx
-    print "data.shape", data.flatten().shape, log_lognodes_idx[nodeid]
+    # print "data.shape", data.flatten().shape, log_lognodes_idx[nodeid]
     log_lognodes[nodeid].loc[log_lognodes_idx[nodeid]] = data.flatten()
     # log_lognodes[nodeid].loc[0] = 1
     # print "log_lognodes[nodeid]", log_lognodes[nodeid].loc[0]

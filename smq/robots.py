@@ -243,9 +243,10 @@ class PointmassRobot(Robot):
         return that"""
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
         # acc, vel, pos, dist_goal, acc_pred, acc_motor
+
         # for k in self.smdict.keys():
-        for k in self.smdict.keys():
-            print "self.smdict[%s]" % (k), self.smdict[k].shape
+        #     print "self.smdict[%s]" % (k), self.smdict[k].shape
+        
         logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
         # print "logdata", logdata
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
@@ -269,21 +270,21 @@ class PointmassRobot(Robot):
             self.smdict["s_proprio"] = x[self.dim_s_extero:].copy() # HACK?
             self.smdict["s_extero"]  = x[:self.dim_s_extero].copy() # HACK?
             
-        print "s_pred 1", self.smdict["s_pred"]
+        # print "s_pred 1", self.smdict["s_pred"]
         # 2. m = ask brain to fill in things, no brain yet but hey
         for brain in self.brains:
             # print "brain",i
             self.smdict = brain.step(self.smdict)
-            print "s_pred 2", self.smdict["s_pred"]
+            # print "s_pred 2", self.smdict["s_pred"]
             prediction = brain.predict_proprio()
             # print "prediction",prediction
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
         
-        print "s_pred 3", self.smdict["s_pred"]
-        m_ = self.env.compute_motor_command(prediction.T)
-        # print m_.shape, m_, "s_pred", self.smdict["s_pred"]
+        # print "s_pred 3", self.smdict["s_pred"]
+        m_ = self.env.compute_motor_command(prediction).T # transpose to comply with smdict
+        # print "m_", m_.shape, m_, "s_pred", self.smdict["s_pred"]
         self.smdict["s_pred"] = m_
-        self.smdict["s_motor"] = m_.reshape(self.dim_s_motor,1)
+        self.smdict["s_motor"] = m_.reshape((self.dim_s_motor, 1))
         print "%s.step m = %s" % (self.__class__.__name__, self.smdict["s_motor"])
         # m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)
@@ -291,7 +292,7 @@ class PointmassRobot(Robot):
         # self.y = self.smdict["s_motor"].reshape(self.dim_s_motor,)
         # print "dimcomaprison smdict[\"s_motor\"] vs. y", self.smdict["s_motor"].shape, self.y.shape
         # return brain answer
-        return self.smdict["s_motor"]
+        return np.squeeze(self.smdict["s_motor"], axis=1)
 
     def update(self, prediction):
         """let the body and forces induced by the robot's predictions interact with the world and yield effect"""

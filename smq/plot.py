@@ -7,11 +7,15 @@ import smq.logging as log
 
 # check pandas, seaborne
 
-class PlotTimeseries(object):
+class Plot(object):
     def __init__(self, conf):
-        print "conf", conf
+        # print "conf", conf
         self.type = conf["type"]
 
+class PlotTimeseries(Plot):
+    def __init__(self, conf):
+        Plot.__init__(self, conf)
+        
     def run(self):
         print "log.h5file", log.h5file
         pl.ioff()
@@ -49,3 +53,30 @@ class PlotTimeseries(object):
         # pl.hist(data.T, bins=20, orientation="horizontal")
         pl.xlabel("counts")
         pl.show()
+
+class PlotTimeseries2D(Plot):
+    def __init__(self, conf):
+        Plot.__init__(self, conf)
+
+    def run(self):
+        df = log.log_lognodes["pm"]
+        data = df.values.T
+        columns = df.columns
+        # print "columns", columns
+
+        pl.ioff() #
+        
+        if self.type == "pyplot":
+            # pl.plot(df["vel0"], df["vel1"], "ko")
+            print df["vel0"].values.dtype
+            print df["vel_goal0"].values, df["vel_goal1"].values
+            # pl.hist2d(df["vel0"].values, df["vel1"].values, bins=20)
+            pl.plot(df["vel_goal0"].values[0], df["vel_goal1"].values[0], "ro", markersize=16, alpha=0.5)
+            pl.hexbin(df["vel0"].values, df["vel1"].values, gridsize = 30)
+            pl.grid()
+            pl.colorbar()
+            pl.show()
+        elif self.type == "seaborn":
+            sns.jointplot(x="vel0", y="vel1", data=df)
+            # pl.plot(df["vel_goal0"], df["vel_goal1"], "ro")
+            pl.show()
