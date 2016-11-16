@@ -4,14 +4,23 @@
 
 * Items
 ** TODO fix plotting
- - plotting proper from prototype: switch to pandas dataframes as structured arrays seem weird
+ - plotting proper from prototype:
+  - x switch to pandas dataframes as structured arrays seem weird
+  - x fix hardcoded tablename
+ - dataframes also solve the column name problem
+ - distinguish analyses and plots
+ - make sure plot funcs are dealing with figures and axes, so there
+   can be a final aggregation of different parts into a final figure
+   that can also be saved to print format
 
 ** TODO add worlds
 *** TODO pointmass world
+  - increase dimensions 3, 10
   - add force fields
   - add structure and obstacles
 
 ** TODO add robots
+ - check pointmass kinematic vs. dynamic control
  - arm
  - stdr
  - sphero
@@ -22,6 +31,7 @@
  - taxis
  - learning from kinesis
  - im, imol, actinf, eh, iso, ...
+ - hyperopt'ing
 
 ** TODO sm space partition order
 

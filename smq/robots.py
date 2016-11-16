@@ -148,7 +148,8 @@ class Robot(object):
             # self.dimcolumns.append(conf[k])
         self.smdict_concat = [None for i in range(self.dim)]
         
-        print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
+        # print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
+        print "%s.__init__ full sm dim = %d, names = %s" % (self.__class__.__name__, self.dim, self.dimnames)
         self.sm = np.zeros((self.dim, 1)) # full sensorimotor vector, use dict?
 
         # brains, only one
@@ -210,7 +211,7 @@ class SimpleRandomRobot(Robot):
 class PointmassRobot(Robot):
     def __init__(self, conf):
         self.conf = conf
-        print "PointmassRobot.conf", self.conf
+        # print "PointmassRobot.conf", self.conf
         # print "PointmassRobot.conf", conf
         # make args from conf needing numsteps, system, sysdim
         Robot.__init__(self, self.conf)
@@ -231,7 +232,7 @@ class PointmassRobot(Robot):
             # print "env_conf", env_conf
             # reset environment
             self.env.reset()
-            print "self.env", self.env
+            # print "self.env", self.env
 
     def get_logdata_columns(self):
         """collect all internal variables and their names and return ordered
@@ -248,7 +249,7 @@ class PointmassRobot(Robot):
         #     print "self.smdict[%s]" % (k), self.smdict[k].shape
         
         logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
-        # print "logdata", logdata
+        print "logdata", logdata.shape, self.dim
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
         return logdata
             
@@ -277,15 +278,21 @@ class PointmassRobot(Robot):
             self.smdict = brain.step(self.smdict)
             # print "s_pred 2", self.smdict["s_pred"]
             prediction = brain.predict_proprio()
-            # print "prediction",prediction
+            print "prediction", prediction.shape
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
         
         # print "s_pred 3", self.smdict["s_pred"]
+        
+        # m_ retains input shape?
+        # m_ = self.env.compute_motor_command(np.squeeze(prediction, axis=0)).T # transpose to comply with smdict
+        # print "m_.shape", m_.shape
+        
         m_ = self.env.compute_motor_command(prediction).T # transpose to comply with smdict
+        # print "m_.shape", m_.shape
         # print "m_", m_.shape, m_, "s_pred", self.smdict["s_pred"]
         self.smdict["s_pred"] = m_
         self.smdict["s_motor"] = m_.reshape((self.dim_s_motor, 1))
-        print "%s.step m = %s" % (self.__class__.__name__, self.smdict["s_motor"])
+        # print "%s.step m = %s" % (self.__class__.__name__, self.smdict["s_motor"])
         # m = s + (np.random.binomial(3, 0.05) * 0.01 * (np.random.binomial(1, 0.5) * 2 -1))
         # 3. w = ask_world(m)
         # return self.x.reshape(self.mdim,)

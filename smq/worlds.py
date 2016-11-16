@@ -97,13 +97,13 @@ class RobotWorld(World):
             for i, item in enumerate(items):
                 # print "item #%d" % i
                 if isinstance(item, Robot):
-                    print "it's a robot"
+                    print "%s.add'ing a robot" % (self.__class__.__name__)
                     self.robots.append({"robot": item, "input": np.zeros((item.dim_s_proprio + item.dim_s_extero, 1))})
                     self.update_robot.append(self.update_robot_f_2)
                     log.init_log2_block(item.conf["name"], item.dim)
                     # columns = [getattr(item, a) for a in item.smstruct]
                     columns = [a for a in item.dimnames]
-                    print "columns", columns
+                    # print "%s.add: columns %s" % (self.__class__.__name__, columns)
                     log.init_log3_block(item.conf["name"], item.dim, tbl_columns = columns, numsteps = self.numsteps)
         else:
             print self.__class__.__name__, "add(): requires list"

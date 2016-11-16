@@ -10,3 +10,8 @@ def get_items(items_conf):
     # return list
     return items
 
+def set_attr_from_dict(obj, dictionary):
+    """set attributes of an object with names from the dictionary's keys and their values from the dictionary's values"""
+    for k,v in dictionary.items():
+        setattr(obj, k, v)
+        

@@ -57,10 +57,10 @@ def init_log2(config):
     #     lognodes[nodev.id] = h5file.create_earray(root, "%s_obuf" % (nodev.id), a, (nodev.odim, 0))
     # loginit = True # this doesn't work yet persistently, why?
     loginit = True
-    print("initlog done")
+    # print("initlog done")
 
 def init_log2_block(tbl_name, tbl_dim, tbl_columns = None):
-    print("init_log2_block", tbl_name, tbl_dim)
+    # print("%s.init_log2_block" % ("logging"), tbl_name, tbl_dim)
     global loginit, h5file, lognodes
     if loginit:
         a = tb.Float64Atom()
@@ -90,7 +90,7 @@ def init_log3(config):
 
 def init_log3_block(tbl_name, tbl_dim, tbl_columns = None, numsteps=100):
     global log_store, log_lognodes
-    print "adding %s to log_lognodes with columns %s" % (tbl_name, tbl_columns)
+    # print "logging.init_log3_block: adding %s to log_lognodes with columns %s" % (tbl_name, tbl_columns)
     log_lognodes[tbl_name] = pd.DataFrame(columns=tbl_columns, index = range(numsteps), dtype=float)
     log_lognodes_idx[tbl_name] = 0
 

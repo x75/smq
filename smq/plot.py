@@ -6,11 +6,14 @@ import seaborn as sns
 import smq.logging as log
 
 # check pandas, seaborne
+# FIXME: fix hardcoded tablenames
+
+from smq.utils import set_attr_from_dict
 
 class Plot(object):
     def __init__(self, conf):
-        # print "conf", conf
-        self.type = conf["type"]
+        self.conf = conf
+        set_attr_from_dict(self, conf)
 
 class PlotTimeseries(Plot):
     def __init__(self, conf):
@@ -68,13 +71,30 @@ class PlotTimeseries2D(Plot):
         
         if self.type == "pyplot":
             # pl.plot(df["vel0"], df["vel1"], "ko")
-            print df["vel0"].values.dtype
-            print df["vel_goal0"].values, df["vel_goal1"].values
+            # print df["vel0"].values.dtype
+            pl.subplot(131)
+            pl.title("state distribution and goal")
+            # print df["vel_goal0"].values, df["vel_goal1"].values
             # pl.hist2d(df["vel0"].values, df["vel1"].values, bins=20)
             pl.plot(df["vel_goal0"].values[0], df["vel_goal1"].values[0], "ro", markersize=16, alpha=0.5)
-            pl.hexbin(df["vel0"].values, df["vel1"].values, gridsize = 30)
+            pl.hexbin(df["vel0"].values, df["vel1"].values, gridsize = 30, marginals=True)
+            pl.plot(df["vel0"].values, df["vel1"].values, "k-", alpha=0.25, linewidth=1)
+            pl.xlim((-1.2, 1.2))
+            pl.ylim((-1.2, 1.2))
             pl.grid()
             pl.colorbar()
+
+            pl.subplot(132)
+            pl.title("prediction distribution")
+            pl.hexbin(df["acc_pred0"].values, df["acc_pred1"].values, gridsize = 30, marginals=True)
+            pl.xlim((-1.2, 1.2))
+            pl.ylim((-1.2, 1.2))
+
+            pl.subplot(133)
+            pl.title("goal distance distribution")
+            pl.hist(df["dist_goal0"].values)
+
+            
             pl.show()
         elif self.type == "seaborn":
             sns.jointplot(x="vel0", y="vel1", data=df)

@@ -8,14 +8,14 @@ import numpy as np
 
 from collections import OrderedDict
 
-from smq.utils import get_items
+from smq.utils import get_items, set_attr_from_dict
 
 class Brain(object):
     def __init__(self, conf):
         self.conf = conf
         self.dim_s_motor = self.conf["dim_s_motor"]
 
-
+        set_attr_from_dict(self, self.conf)
         # # FIXME: basically a copy of what's in robot
         # self.dim    = 0
         # self.dimnames = []
@@ -36,10 +36,10 @@ class Brain(object):
         # self.sm = np.zeros((self.dim, 1)) # full sensorimotor vector, use dict?
 
         # copy sm structure from robot
-        for attr in conf["smattrs"]:
-            print attr, conf[attr]
-            setattr(self, attr, conf[attr])
-        for attr in conf["smdict"].keys():
+        for attr in self.conf["smattrs"]:
+            # print attr, self.conf[attr]
+            setattr(self, attr, self.conf[attr])
+        for attr in self.conf["smdict"].keys():
             # print "dim_" + attr, conf["smdict"][attr].shape[0]
             setattr(self, "dim_" + attr, conf["smdict"][attr].shape[0])
         
@@ -85,12 +85,18 @@ class KinesisBrain(Brain):
     def predict_proprio(self):
         """By definition proprio space is identical to motor space?"""
         # checking for the value of a reward is this brain's way of responding to the environment
-        if self.smdict["s_reward"][0] > 0.02:
-             self.smdict["s_pred"] = np.random.uniform(-1.5, 1.5, (1, self.dim_s_motor))
-        else:
-             self.smdict["s_pred"] = np.random.uniform(-0.01, 0.01, (1, self.dim_s_motor))
         err = self.smdict["s_reward"][0]
-        self.smdict["s_pred"] = np.random.uniform(-(np.sqrt(err)*10), np.sqrt(err)*10, (1, self.dim_s_motor))
+        gain = 1.5
+        
+        if self.variant == "binary_threshold":
+            if err > 0.02: # FIXME: hardcoded index
+                self.smdict["s_pred"] = np.random.uniform(-1.5, 1.5, (1, self.dim_s_motor))
+            else:
+                self.smdict["s_pred"] = np.random.uniform(-0.01, 0.01, (1, self.dim_s_motor))
+        else: # default case
+            self.smdict["s_pred"] = np.random.uniform(-(np.sqrt(err)*gain), np.sqrt(err)*gain, (1, self.dim_s_motor))
+            # self.smdict["s_pred"] = np.random.uniform(-(np.power(err, 1/2.0)*gain), np.power(err, 1/2.0)*gain, (1, self.dim_s_motor))
+            
         return self.smdict["s_pred"]
         
         

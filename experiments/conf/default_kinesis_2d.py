@@ -43,7 +43,7 @@ conf = {
             "dim_s_proprio": make_column_names_numbered("acc", motors),
             "dim_s_extero": make_column_names_numbered("vel", motors),
             "dim_s_intero": make_column_names_numbered("vel_", motors) + make_column_names_numbered("pos_", motors) + make_column_names_numbered("vel_goal", motors),
-            "dim_s_reward": ["dist_goal"],
+            "dim_s_reward": make_column_names_numbered("dist_goal", 1),
             "dim_s_pred": make_column_names_numbered("acc_pred", motors),
             "dim_s_motor": make_column_names_numbered("m", motors),
             "numsteps": numsteps,
@@ -54,12 +54,14 @@ conf = {
                     "class": KinesisBrain,
                     "name": "kinesisbrain",
                     "dim_s_motor": motors,
+                    "variant": "continuous_linear", # "binary_threshold"
                     # tasks be of length either one or same as len(robots)
                     "tasks": [
                         {
                             "class": GoalTask,
                             "name": "goaltask",
                             "goalspace": "extero",
+                            "intero_index": 4,
                             "goaldim": motors,
                             "loss": "mse",
                         }

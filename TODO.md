@@ -3,20 +3,49 @@
 # Items
 
 
-## Filesystem
+## fix plotting
 
-Separate the core component lib from the actual experiments,
-specification, and logging data.
+-   plotting proper from prototype: switch to pandas dataframes as structured arrays seem weird
+-   dataframes also solve the column name problem
 
 
-## dimensions
+## add worlds
 
-what is system, what is robot, what are dimensions, do proper spec of
 
--   proprioceptive
--   exteroceptive
--   interoceptive
--   reward system: pain, pleasure, hunger, &#x2026;
+### pointmass world
+
+-   increase dimensions 3, 10
+-   add force fields
+-   add structure and obstacles
+
+
+## add robots
+
+-   check pointmass kinematic vs. dynamic control
+-   arm
+-   stdr
+-   sphero
+-   cartpole
+
+
+## add brains
+
+-   x kinesis
+-   taxis
+-   learning from kinesis
+-   im, imol, actinf, eh, iso, &#x2026;
+-   hyperopt'ing
+
+
+## sm space partition order
+
+make sure that the order of sm space partitions is consistent with
+respect to smdict keys etc
+
+
+## failsafe
+
+make failsafe checks for configuration consistency
 
 
 ## integration / robots lib
@@ -53,7 +82,10 @@ how to separate world, robot, task appropriately
 
 ## logging
 
-how logging and ros publishing is the same or not?
+-   how logging and ros publishing is the same or not: ROS also
+    involves inputs whereas logging is only one-way
+-   logging/publishing decorators
+-   column names for tables
 
 
 ## tasks
@@ -93,4 +125,22 @@ which parts to do as submodules:
 -   losslib: mse, mae, pi, ais, &#x2026;
 -   analylib: plot timeseries, plot histograms, plot hexbin, plot
     dimstack, scattermatrix, &#x2026;
+
+
+## dimensions
+
+what is system, what is robot, what are dimensions, do proper spec of
+
+-   proprioceptive
+-   exteroceptive
+-   interoceptive
+-   reward system: pain, pleasure, hunger, &#x2026;
+
+
+## Filesystem
+
+Separate the core component lib from the actual experiments,
+specification, and logging data.
+
+Put that into smp<sub>experiments</sub>.
 

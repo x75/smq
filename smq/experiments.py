@@ -53,11 +53,20 @@ def get_config_raw(conf):
 
 def set_config_defaults(conf):
     """Try and set some reasonable defaults in case of inconsistent configurations"""
+    # robots
     for robot in conf["robots"]:
+        # brains
         for brain in robot["brains"]:
+            # brain items
+            if not brain.has_key("variant"):
+                brain["variant"] = "default"
+            
+            # tasks
             for task in brain["tasks"]:
                 if not task.has_key("goaldim"):
                     task["goaldim"] = 1
+                if not task.has_key("intero_index"):
+                    task["intero_index"] = 1
     
     for analysis in conf["analyses"]:
         # print analysis
@@ -137,8 +146,7 @@ class Experiment(object):
         #                 multi episode optimization (hpo, cma, evo, ...)
         #                 infinite episode, ...
         for i in xrange(self.numsteps):
-            print "#" * 80
-            print "Experiment.run iter = %d" % i
+            print "# % 10d " % (i) + "#" * 80
             # 1. get sensors
             # 2. do brain
             # 3. do motors
@@ -146,6 +154,8 @@ class Experiment(object):
             self.worlds[0].step()
             # 5. log
             # 6. repeat
+
+            # TODO: realtime mode: delay next iteration for realtime plotting and visualization
         # print "log.log_store", log.log_store
         for k,v in log.log_lognodes.items():
             print "k", k, "v", type(v)
