@@ -58,8 +58,23 @@ def set_config_defaults(conf):
         # brains
         for brain in robot["brains"]:
             # brain items
-            if not brain.has_key("variant"):
-                brain["variant"] = "default"
+
+            # kinesis brain
+            if brain["class"].__name__ == "KinesisBrain": # FIXME
+                brain_items = {
+                    "variant": "default",
+                    "continuous_gain": 1.5,
+                    "binary_threshold": 0.005,
+                    "binary_high_range": 1.5,
+                    "binary_low_range": 0.01
+                    }
+            else:
+                brain_items = {}
+
+            # copy from default dict to real dict
+            for k,v in brain_items.items():
+                if not brain.has_key(k):
+                    brain[k] = v
             
             # tasks
             for task in brain["tasks"]:

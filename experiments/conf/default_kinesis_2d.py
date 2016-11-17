@@ -11,6 +11,7 @@ Brain: kinesis
 """
 
 import time
+from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld
 from smq.robots import SimpleRandomRobot, PointmassRobot
 from smq.plot   import PlotTimeseries, PlotTimeseries2D, PlotTimeseriesND
@@ -21,10 +22,7 @@ from smq.brains import NullBrain, KinesisBrain
 numsteps = 1000
 motors   = 2
 name = "default_kinesis_2d"
-expr_id = "%s-%s" % (name, time.strftime("%Y%m%d-%H%M%S"))
-
-def make_column_names_numbered(base = "base", times = 1):
-    return ["%s%d" % (base, i) for i in range(times)]
+expr_id = make_expr_id(name)
 
 # using dict convention seemed to be the best over yaml and friends
 conf = {
@@ -36,7 +34,7 @@ conf = {
         {
             "class": PointmassRobot, # SimpleRandomRobot,
             "type": "explauto",
-            "name": "%s-%s-%d" % (expr_id, "pm", 0),
+            "name": make_robot_name(expr_id, "pm", 0),
             # dimensions of different subparts of sm vector
             # make that more compact / automatically inferred
             # actually: make that lists of names whose length is the dim

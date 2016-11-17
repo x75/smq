@@ -63,6 +63,8 @@ def get_context_environment_pointmass(args):
     if args.sysdim == "low":
         env_conf_str = "low_dim_acc_vel"
         # env_conf_str = "low_dim_full"
+    elif args.sysdim == "low_c1":
+        env_conf_str = "low_dim_acc_vel_c1"
     elif args.sysdim == "planar":
         env_conf_str = "planar_dim_acc_vel"
     elif args.sysdim == "mid":
@@ -107,7 +109,10 @@ def make_args_from_(conf):
         system = "pointmass"
         
     if len(conf["dim_s_motor"]) == 1:
-        sysdim = "low"
+        if conf["control"] == "vel":
+            sysdim = "low_c1"
+        else:
+            sysdim = "low"
     elif len(conf["dim_s_motor"]) == 2:
         sysdim = "planar"
     elif len(conf["dim_s_motor"]) in range(3,10):
@@ -127,42 +132,69 @@ class Robot(object):
         self.dim    = 0
         self.dimnames = []
         # self.dimcolumns = []
-        self.smdict = OrderedDict()
+        self.smdict       = OrderedDict()
+        self.smdict_index = OrderedDict()
+        # let's call these "dimension groups"
         self.smstruct = ["dim_s_proprio", "dim_s_extero", "dim_s_intero", "dim_s_reward", "dim_s_pred", "dim_s_motor"]
         self.smattrs  = ["dim", "dimnames", "smdict", "smstruct", "sm", "smattrs"]
 
         # default copy conf items into member vars
         set_attr_from_dict(self, conf) # check that this is OK
-        
-        # more differentiated sm space description
+
+                
+        # sensorimotor space representation
         for k in self.smstruct:
+            # smdict key
+            k_ = k.replace("dim_", "")
+            
             # dim of that part is length of fields array
             dim_ = len(conf[k])
+            
             # set the class attribute
             setattr(self, k, dim_)
+            
             # count overall dims
             self.dim += dim_
-            
-            for dimname in conf[k]:
+
+            # collect all variable names
+            self.smdict_index[k_] = {}
+            for i, dimname in enumerate(conf[k]):
+                # this is local index for given dim group
+                self.smdict_index[k_][dimname] = i
+                # this is globally associated with self.sm
                 self.dimnames.append(dimname)
-            k_ = k.replace("dim_", "")
+                
             self.smdict[k_] = np.zeros((dim_, 1))
-            # add raw field names
             # self.dimcolumns.append(conf[k])
-        self.smdict_concat = [None for i in range(self.dim)]
-        
-        # print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
-        print "%s.__init__ full sm dim = %d, names = %s" % (self.__class__.__name__, self.dim, self.dimnames)
+        self.smdict_concat = [None for i in range(self.dim)] # don't need this
         self.sm = np.zeros((self.dim, 1)) # full sensorimotor vector, use dict?
 
-        # brains, only one
+        # debug
+        # print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
+        print "%s.__init__ full\n       #dims = %d\n    dimnames = %s\nsmdict_index = %s\n" % \
+          (self.__class__.__name__, self.dim, self.dimnames, self.smdict_index)
+          
+        ################################################################################
+        # brain only one
+        
+        # brain prepare config by copying robot attributes to brain config
         for attr in self.smattrs:
             # print attr, getattr(self, attr)
             self.conf["brains"][0][attr] = getattr(self, attr)
-        # print self.conf["brains"]
+            
+        # brain instantiate
         self.brains = get_items(self.conf["brains"])
+        
+        # brain shouldn't we just pass a robot self reference down into the brain?
+        for brain in self.brains:
+            brain.robot = self
+            
         assert(len(self.brains) == 1) # not ready for that yet
                 
+    def get_sm_index(self, dimgroup, base):
+        # FIXME: make the goal dim configurable etc on this level
+        return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(self.dim_s_motor)]
+    
     def step(self):
         """execute one time-step, this refers to updating robot brain with
         new sensor data and producing a prediction"""
@@ -175,7 +207,7 @@ class Robot(object):
 class SimpleRandomRobot(Robot):
     def __init__(self, conf):
         self.conf = conf
-        print "PointmassRobot.conf", self.conf
+        print "%s.__init__ self.conf = %s" % (self.__class__.__name__, self.conf)
         # print "PointmassRobot.conf", conf
         # make args from conf needing numsteps, system, sysdim
         Robot.__init__(self, self.conf)
@@ -194,11 +226,11 @@ class SimpleRandomRobot(Robot):
             # print "env_conf", env_conf
             # reset environment
             self.env.reset()
-            print "self.env", self.env
+            print "%s.__init__ self.env = %s" %(self.__class__.__name__,  self.env)
         
     def step(self, x):
         """step the robot: input is vector of new information $x$ from the world"""
-        print "PointmassRobot.step x", x
+        print "%s.step x = %s" % (self.__class__.__name__, x)
         if x is None: # catch initial state
             self.x = np.random.uniform(-1.0, 1.0, (self.dim_s_proprio, 1))
         # print "x", x
@@ -252,7 +284,7 @@ class PointmassRobot(Robot):
         #     print "self.smdict[%s]" % (k), self.smdict[k].shape
         
         logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
-        print "logdata", logdata.shape, self.dim
+        print "%s.get_logdata, logdata.shape = %s, self.dim = %d" % (self.__class__.__name__, logdata.shape, self.dim)
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
         return logdata
             
@@ -281,7 +313,7 @@ class PointmassRobot(Robot):
             self.smdict = brain.step(self.smdict)
             # print "s_pred 2", self.smdict["s_pred"]
             prediction = brain.predict_proprio()
-            print "prediction", prediction.shape
+            print "%s.step prediction.shape = %s" %(self.__class__.__name__,  prediction.shape)
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
         
         # print "s_pred 3", self.smdict["s_pred"]
@@ -291,7 +323,7 @@ class PointmassRobot(Robot):
         # print "m_.shape", m_.shape
         
         m_ = self.env.compute_motor_command(prediction).T # transpose to comply with smdict
-        # print "m_.shape", m_.shape
+        print "m_.shape", m_.shape
         # print "m_", m_.shape, m_, "s_pred", self.smdict["s_pred"]
         self.smdict["s_pred"] = m_
         self.smdict["s_motor"] = m_.reshape((self.dim_s_motor, 1))

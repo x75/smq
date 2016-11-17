@@ -75,16 +75,18 @@ class RobotWorld(World):
             # print "robotdict[\"input\"].shape", robotdict["input"].shape, robotdict["input"]
             # print "robot.x.shape = %s, %s" % (robot.x.shape, robot.x)
             # print "robot.y.shape = %s, %s" % (robot.y.shape, robot.y)
+            
             # log all robot module data for current timestep
-            # logdata = np.atleast_2d(np.hstack((robot.x, robot.y))).T
             logdata = robot.get_logdata()
             # print "logdata.shape", logdata.shape
-            now = time.time()
+
+            # now = time.time()
             log.log(robot.conf["name"], logdata)
-            print "log2 took %f s" % (time.time() - now)
-            now = time.time()
+            # print "%s.step log2 took %f s" % (self.__class__.__name__, time.time() - now)
+
+            # now = time.time()
             log.log3(robot.conf["name"], logdata)
-            print "log3 took %f s" % (time.time() - now)
+            # print "%s.step log3 took %f s" % (self.__class__.__name__, time.time() - now)
             
         # update time
         self.time += self.dt

@@ -11,6 +11,7 @@ Brain: null brain: just output null
 """
 
 import time
+from smq.utils  import make_column_names_numbered
 from smq.worlds import RobotWorld
 from smq.robots import SimpleRandomRobot, PointmassRobot
 from smq.plot   import PlotTimeseries

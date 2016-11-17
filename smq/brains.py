@@ -15,7 +15,9 @@ class Brain(object):
         self.conf = conf
         self.dim_s_motor = self.conf["dim_s_motor"]
 
+        # default conf to attr copy action
         set_attr_from_dict(self, self.conf)
+        
         # # FIXME: basically a copy of what's in robot
         # self.dim    = 0
         # self.dimnames = []
@@ -45,6 +47,9 @@ class Brain(object):
         
         # tasks
         self.tasks = get_items(conf["tasks"])
+        for task in self.tasks:
+            task.brain = self
+        
         # assert one reward for each task?
         assert(len(self.tasks) == self.dim_s_reward)
 
@@ -54,6 +59,7 @@ class Brain(object):
             # self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
             self.smdict["s_proprio"] = np.random.uniform(-1.0, 1.0, (self.dim_s_proprio, 1))
             self.smdict["s_extero"]  = np.random.uniform(-1.0, 1.0, (self.dim_s_extero,  1))
+            self.smdict["s_intero"]  = np.random.uniform(-1.0, 1.0, (self.dim_s_intero,  1))
         else:
             self.smdict["s_proprio"] = x["s_proprio"].copy() # HACK?
             self.smdict["s_extero"]  = x["s_extero"].copy() # HACK?
@@ -86,18 +92,33 @@ class KinesisBrain(Brain):
         """By definition proprio space is identical to motor space?"""
         # checking for the value of a reward is this brain's way of responding to the environment
         err = self.smdict["s_reward"][0]
-        gain = 1.5
+        gain = self.continuous_gain
         
         if self.variant == "binary_threshold":
-            if err > 0.02: # FIXME: hardcoded index
-                self.smdict["s_pred"] = np.random.uniform(-1.5, 1.5, (1, self.dim_s_motor))
+            if err > self.binary_threshold: # FIXME: hardcoded index
+                self.smdict["s_pred"] = np.random.uniform(-self.binary_high_range, self.binary_high_range, (1, self.dim_s_motor))
             else:
-                self.smdict["s_pred"] = np.random.uniform(-0.01, 0.01, (1, self.dim_s_motor))
+                self.smdict["s_pred"] = np.random.uniform(-self.binary_low_range,  self.binary_low_range,  (1, self.dim_s_motor))
         else: # default case
             self.smdict["s_pred"] = np.random.uniform(-(np.sqrt(err)*gain), np.sqrt(err)*gain, (1, self.dim_s_motor))
             # self.smdict["s_pred"] = np.random.uniform(-(np.power(err, 1/2.0)*gain), np.power(err, 1/2.0)*gain, (1, self.dim_s_motor))
             
         return self.smdict["s_pred"]
         
-        
+class TaxisBrain(Brain):
+    def __init__(self, conf):
+        Brain.__init__(self, conf)
+
+    def predict_proprio(self):
+        # print "self.robot", self.robot.brains[0], self
+        # FIXME: more general
+        error = self.smdict["s_intero"][self.robot.get_sm_index("s_intero", "vel_error")]
+        pred = error * -0.1 + np.random.normal(0.01, 0.01, error.shape)
+        print "%s.predict_proprio: error = %s, pred = %s" % (self.__class__.__name__, error, pred)
+        # FIXME: control indexing shape
+        # [self.robot.get_sm_index("s_pred", "acc_pred")]
+        self.smdict["s_pred"] = pred.T
+        # make sure shape is (1, dim)
+        return self.smdict["s_pred"]
+                    
 # Identity, Random, MotorBabbling, ...

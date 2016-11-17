@@ -209,7 +209,8 @@ class PlotTimeseriesND(Plot):
             for j in range(items[0].dim_s_motor): # 1, 2; 0, 2; 0, 1
                 if i == j:
                     continue
-                g.axes[i,j].plot(df["vel_goal%d" % i][0], df["vel_goal%d" % j][0], "ro", alpha=0.5)
+                # column gives x axis, row gives y axis, thus need to reverse the selection for plotting goal
+                g.axes[i,j].plot(df["vel_goal%d" % j][0], df["vel_goal%d" % i][0], "ro", alpha=0.5)
                 
         pl.show()
 

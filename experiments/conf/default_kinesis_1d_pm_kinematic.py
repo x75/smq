@@ -14,14 +14,14 @@ import time
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld
 from smq.robots import SimpleRandomRobot, PointmassRobot
-from smq.plot   import PlotTimeseries, PlotTimeseries2D, PlotTimeseriesND
+from smq.plot   import PlotTimeseries
 from smq.tasks  import NullTask, SetpointTask, GoalTask
 from smq.brains import NullBrain, KinesisBrain
 
 # local variables for re-use
 numsteps = 1000
-motors   = 10 # let N = 10
-name = "default_kinesis_Nd"
+motors   = 1
+name = "default_kinesis_1d"
 expr_id = make_expr_id(name)
 
 # using dict convention seemed to be the best over yaml and friends
@@ -34,18 +34,18 @@ conf = {
         {
             "class": PointmassRobot, # SimpleRandomRobot,
             "type": "explauto",
-            "name": make_robot_name(expr_id, "pm", 0)
+            "name": make_robot_name(expr_id, "pm_kinematic", 0),
             # dimensions of different subparts of sm vector
             # make that more compact / automatically inferred
             # actually: make that lists of names whose length is the dim
-            "dim_s_proprio": make_column_names_numbered("acc", motors),
-            "dim_s_extero": make_column_names_numbered("vel", motors),
-            "dim_s_intero": make_column_names_numbered("vel_", motors) + make_column_names_numbered("pos_", motors) + make_column_names_numbered("vel_goal", motors),
-            "dim_s_reward": make_column_names_numbered("dist_goal", 1),
-            "dim_s_pred": make_column_names_numbered("acc_pred", motors),
-            "dim_s_motor": make_column_names_numbered("m", motors),
+            "dim_s_proprio": ["acc"],
+            "dim_s_extero": ["vel"],
+            "dim_s_intero": ["vel_", "pos_", "vel_goal"],
+            "dim_s_reward": ["dist_goal"],
+            "dim_s_pred": ["acc_pred"],
+            "dim_s_motor": ["m"] * motors,
             "numsteps": numsteps,
-            "control": "force", # 1st order
+            "control": "vel",
             "ros": False,
             "brains": [
                 {
@@ -53,14 +53,16 @@ conf = {
                     "name": "kinesisbrain",
                     "dim_s_motor": motors,
                     "variant": "binary_threshold", # "continuous_linear"
+                    "continuous_gain": 1.5,
+                    "binary_threshold": 0.2,
+                    "binary_high_range": 1.0,
+                    "binary_low_range": 0.01,
                     # tasks be of length either one or same as len(robots)
                     "tasks": [
                         {
                             "class": GoalTask,
                             "name": "goaltask",
                             "goalspace": "extero",
-                            "intero_index": 2 * motors, # FIXME: hm ..
-                            "goaldim": motors,
                             "loss": "mse",
                         }
                     ],
@@ -79,10 +81,9 @@ conf = {
     "loss": "mse",
     "analyses": [
         {
-            "class": PlotTimeseriesND,
-            "name": "plottimeseriesnd",
-            "type": "pyplot", # "seaborn",
-            "method": "run"
+            "class": PlotTimeseries,
+            "name": "plottimeseries",
+            "type": "seaborn" # "pyplot"
         },
     ],
     }
