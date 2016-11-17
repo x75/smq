@@ -1,3 +1,5 @@
+"""smq util functions"""
+
 def get_items(items_conf):
     """generic function creating a list of objects from a config specification
     objects are: analyses, robots, worlds, tasks, losses, ...

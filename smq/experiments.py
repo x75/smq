@@ -135,16 +135,9 @@ class Experiment(object):
         # finito
                 
     def run(self):
-        # FIXME: how to define experiment structure in conf for different scenarios like:
-        # single run single model single task
-        # single run multiple models single task
-        # optimization run single model single task
-        # ...
-        # IDEA: use a generic type "loop" which has a "step" method and a "stack" member
-        #       stacks are ordered dicts/lists of "loops"
-        #       examples: single episode learning, multi episode learning (value func prop),
-        #                 multi episode optimization (hpo, cma, evo, ...)
-        #                 infinite episode, ...
+        """experiment run method: a set of nested loops capturing optimization over different
+        time scales, agents, parameters, ..."""
+        
         for i in xrange(self.numsteps):
             print "# % 10d " % (i) + "#" * 80
             # 1. get sensors
@@ -160,10 +153,14 @@ class Experiment(object):
         for k,v in log.log_lognodes.items():
             print "k", k, "v", type(v)
             log.log_store[k] = v
+            
         self.analyse()
 
 
     def analyse(self):
         # print "%s.analyse(): implement me" % (self.__class__.__name__)
+        if len(self.robots) < 1:
+            return
+        
         for a in self.analyses:
-            a.run()
+            a.run(self.robots)

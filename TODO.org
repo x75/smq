@@ -53,9 +53,8 @@ with wrappers for: explauto, ROS, ... probably using decorators
 
 experiments.py
 
-FIXME: how to define experiment structure in conf for different
+how to define experiment structure in conf that can capture different
 example scenarios like:
-
  -  single episode learning
  -  multi episode learning (value func prop)
  -  multi episode optimization (hpo, cma, evo, ...)

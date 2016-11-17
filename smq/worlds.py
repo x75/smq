@@ -60,8 +60,9 @@ class RobotWorld(World):
             # debug
             # print "robin.shape", robin.shape, robin
             
-            # update (step) robot, returns y (motor vector, or proprio description)
-            # FIXME: this is awkward, rather get/set x directly from outside
+            # update (step) robot, returns y (motor vector, or proprio description) which
+            # is passed through the environment and only reinserted into the robot in the
+            # update function
             y = robot.step(robin)
             # now action is out in the world
             
@@ -98,6 +99,7 @@ class RobotWorld(World):
                 # print "item #%d" % i
                 if isinstance(item, Robot):
                     print "%s.add'ing a robot" % (self.__class__.__name__)
+                    # intialize robot's input vector, possible FIXME to specify fully general input description in robot config
                     self.robots.append({"robot": item, "input": np.zeros((item.dim_s_proprio + item.dim_s_extero, 1))})
                     self.update_robot.append(self.update_robot_f_2)
                     log.init_log2_block(item.conf["name"], item.dim)

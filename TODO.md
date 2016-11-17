@@ -5,8 +5,14 @@
 
 ## fix plotting
 
--   plotting proper from prototype: switch to pandas dataframes as structured arrays seem weird
+-   plotting proper from prototype:
+    -   x switch to pandas dataframes as structured arrays seem weird
+    -   x fix hardcoded tablename
 -   dataframes also solve the column name problem
+-   distinguish analyses and plots
+-   make sure plot funcs are dealing with figures and axes, so there
+    can be a final aggregation of different parts into a final figure
+    that can also be saved to print format
 
 
 ## add worlds
@@ -60,7 +66,7 @@ with wrappers for: explauto, ROS, &#x2026; probably using decorators
 
 experiments.py
 
-FIXME: how to define experiment structure in conf for different
+how to define experiment structure in conf that can capture different
 example scenarios like:
 
 -   single episode learning

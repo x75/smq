@@ -25,7 +25,7 @@ A robot contains a body, defined set of internal states, given brain, ...
 import numpy as np
 from collections import OrderedDict
 
-from smq.utils import get_items
+from smq.utils import get_items, set_attr_from_dict
 
 #######################################################################
 # copied from smp.environments, methods for constructing explauto based
@@ -130,6 +130,9 @@ class Robot(object):
         self.smdict = OrderedDict()
         self.smstruct = ["dim_s_proprio", "dim_s_extero", "dim_s_intero", "dim_s_reward", "dim_s_pred", "dim_s_motor"]
         self.smattrs  = ["dim", "dimnames", "smdict", "smstruct", "sm", "smattrs"]
+
+        # default copy conf items into member vars
+        set_attr_from_dict(self, conf) # check that this is OK
         
         # more differentiated sm space description
         for k in self.smstruct:

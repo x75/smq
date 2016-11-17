@@ -19,8 +19,8 @@ from smq.brains import NullBrain, KinesisBrain
 
 # local variables for re-use
 numsteps = 1000
-motors   = 2
-name = "default_kinesis_2d"
+motors   = 10 # let N = 10
+name = "default_kinesis_Nd"
 expr_id = "%s-%s" % (name, time.strftime("%Y%m%d-%H%M%S"))
 
 def make_column_names_numbered(base = "base", times = 1):
@@ -30,13 +30,13 @@ def make_column_names_numbered(base = "base", times = 1):
 conf = {
     # first level corresponds to experiment
     "numsteps": numsteps,
-    "id": expr_id,
+    "id": "%s-%s" % (name, time.strftime("%Y%m%d-%H%M%S")),
     # these are arrays of dicts specifying components
     "robots": [
         {
             "class": PointmassRobot, # SimpleRandomRobot,
             "type": "explauto",
-            "name": "%s-%s-%d" % (expr_id, "pm", 0),
+            "name": "pm",
             # dimensions of different subparts of sm vector
             # make that more compact / automatically inferred
             # actually: make that lists of names whose length is the dim
@@ -47,21 +47,21 @@ conf = {
             "dim_s_pred": make_column_names_numbered("acc_pred", motors),
             "dim_s_motor": make_column_names_numbered("m", motors),
             "numsteps": numsteps,
-            "control": "force",
+            "control": "force", # 1st order
             "ros": False,
             "brains": [
                 {
                     "class": KinesisBrain,
                     "name": "kinesisbrain",
                     "dim_s_motor": motors,
-                    "variant": "continuous_linear", # "binary_threshold"
+                    "variant": "binary_threshold", # "continuous_linear"
                     # tasks be of length either one or same as len(robots)
                     "tasks": [
                         {
                             "class": GoalTask,
                             "name": "goaltask",
                             "goalspace": "extero",
-                            "intero_index": 4,
+                            "intero_index": 2 * motors, # FIXME: hm ..
                             "goaldim": motors,
                             "loss": "mse",
                         }
@@ -81,15 +81,9 @@ conf = {
     "loss": "mse",
     "analyses": [
         {
-            "class": PlotTimeseries2D,
-            "name": "plottimeseries2d",
-            "type": "seaborn", # "pyplot",
-            "method": "run"
-        },
-        {
             "class": PlotTimeseriesND,
             "name": "plottimeseriesnd",
-            "type": "seaborn", # "pyplot",
+            "type": "pyplot", # "seaborn",
             "method": "run"
         },
     ],
