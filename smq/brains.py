@@ -8,7 +8,8 @@ import numpy as np
 
 from collections import OrderedDict
 
-from smq.utils import get_items, set_attr_from_dict
+from smq.utils import get_items, set_attr_from_dict, ct_pol2car, ct_car2pol
+
 
 class Brain(object):
     def __init__(self, conf):
@@ -110,13 +111,42 @@ class TaxisBrain(Brain):
         Brain.__init__(self, conf)
 
     def predict_proprio(self):
-        # print "self.robot", self.robot.brains[0], self
-        # FIXME: more general
-        error = self.smdict["s_intero"][self.robot.get_sm_index("s_intero", "vel_error")]
-        pred = error * -0.1 + np.random.normal(0.01, 0.01, error.shape)
-        print "%s.predict_proprio: error = %s, pred = %s" % (self.__class__.__name__, error, pred)
-        # FIXME: control indexing shape
-        # [self.robot.get_sm_index("s_pred", "acc_pred")]
+        error_cart_level = 0.1
+        gain = 0.5
+        # cartesian error, FIXME: more general with respect to the variable keys
+        error_cart = self.smdict["s_intero"][self.robot.get_sm_index("s_intero", "vel_error")]
+
+        # add noise to error
+        # error_cart += np.random.normal(0, error_cart_level, error_cart.shape)
+
+        # prediction based on cartesian error, accounting for both angular
+        # and absolute value error components
+        # pred = error_cart * -gain + np.random.normal(0.01, 0.01, error_cart.shape)
+
+        # debug
+        # print "%s.predict_proprio: error_cart = %s, pred = %s" % (self.__class__.__name__, error_cart, pred)
+        
+
+        # prediction based on directional error only, with a fixed absolute
+        # value component
+        # 
+        # transform cartesian to polar
+        error_pol = ct_car2pol(error_cart)
+        # prepare argument
+        arrarg  = error_pol[1:].reshape(error_cart.shape[0]-1, )
+        arrarg += np.random.normal(0.0, 0.1, arrarg.shape)
+        # transform back to cartesian
+        pred = -ct_pol2car(0.05, arrarg).reshape(error_cart.shape)
+
+        # print "%s.predict_proprio: error_pol = %s, pred = %s" % (self.__class__.__name__, error_pol, pred)
+        
+        # # FIXME: control indexing shape
+        # pred_idx = self.robot.get_sm_index("s_pred", "acc_pred")
+        # # pred_idx = map(list, zip(*pred_idx))        
+        # print "%s.predict_proprio: pred_idx = %s" % (self.__class__.__name__, pred_idx)
+        # self.smdict["s_pred"][pred_idx] = pred
+        # return self.smdict["s_pred"].T
+        
         self.smdict["s_pred"] = pred.T
         # make sure shape is (1, dim)
         return self.smdict["s_pred"]

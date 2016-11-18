@@ -63,11 +63,11 @@ class GoalTaskTaxis(Task):
         # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
         # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
         error_sm_idx = self.brain.robot.get_sm_index("s_intero", "vel_error")
-        print '%s.eval error_sm_idx = %s' % (self.__class__.__name__, error_sm_idx)
+        # print '%s.%s error_sm_idx = %s' % (self.__class__.__name__, self.eval2.__name__, error_sm_idx)
         
         error = x["s_extero"] - self.goal
         self.brain.robot.smdict["s_intero"][error_sm_idx] = error
-        print "%s.eval: error = %s" % (self.__class__.__name__, error)
+        # print "%s.eval: error = %s" % (self.__class__.__name__, error)
         # loss = np.sum(np.square(x["s_extero"] - self.goal))
         # loss = np.sum(np.abs(x["s_extero"] - self.goal))
         # print "loss", loss

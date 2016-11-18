@@ -20,7 +20,7 @@ from smq.brains import NullBrain, TaxisBrain
 
 # local variables for re-use
 numsteps = 1000
-motors   = 2
+motors   = 3
 name = "taxis_2d"
 expr_id = make_expr_id(name)
 
