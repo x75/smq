@@ -58,7 +58,7 @@ conf = {
                         {
                             "class": GoalTaskTaxis,
                             "name": "goaltasktaxis",
-                            "goalspace": "extero",
+                            "goalspace": "s_extero",
                             "intero_index": 4,
                             "goalinteroindex": 4,
                             "goaldim": motors,

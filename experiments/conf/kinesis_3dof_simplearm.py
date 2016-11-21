@@ -13,36 +13,36 @@ Brain: kinesis
 import time
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld
-from smq.robots import SimpleRandomRobot, PointmassRobot
+from smq.robots import SimpleRandomRobot, PointmassRobot, SimplearmRobot
 from smq.plot   import PlotTimeseries, PlotTimeseries2D, PlotTimeseriesND
 from smq.tasks  import NullTask, SetpointTask, GoalTask
 from smq.brains import NullBrain, KinesisBrain
 
 # local variables for re-use
 numsteps = 1000
-motors   = 10 # let N = 10
-name = "default_kinesis_Nd"
+motors   = 3
+name = "kinesis_3dof_simplearm"
 expr_id = make_expr_id(name)
 
 # using dict convention seemed to be the best over yaml and friends
 conf = {
     # first level corresponds to experiment
     "numsteps": numsteps,
-    "id": "%s-%s" % (name, time.strftime("%Y%m%d-%H%M%S")),
+    "id": expr_id,
     # these are arrays of dicts specifying components
     "robots": [
         {
-            "class": PointmassRobot, # SimpleRandomRobot,
+            "class": SimplearmRobot,
             "type": "explauto",
-            "name": make_robot_name(expr_id, "pm", 0)
+            "name": make_robot_name(expr_id, "sa", 0),
             # dimensions of different subparts of sm vector
             # make that more compact / automatically inferred
             # actually: make that lists of names whose length is the dim
-            "dim_s_proprio": make_column_names_numbered("acc", motors),
-            "dim_s_extero": make_column_names_numbered("vel", motors),
-            "dim_s_intero": make_column_names_numbered("vel_", motors) + make_column_names_numbered("pos_", motors) + make_column_names_numbered("vel_goal", motors),
+            "dim_s_proprio": make_column_names_numbered("j_ang", motors),
+            "dim_s_extero": make_column_names_numbered("ee_pos", 2),
+            "dim_s_intero": make_column_names_numbered("j_ang_", motors) + make_column_names_numbered("ee_pos_", motors) + make_column_names_numbered("j_goal", motors),
             "dim_s_reward": make_column_names_numbered("dist_goal", 1),
-            "dim_s_pred": make_column_names_numbered("acc_pred", motors),
+            "dim_s_pred": make_column_names_numbered("j_ang_pred", motors),
             "dim_s_motor": make_column_names_numbered("m", motors),
             "numsteps": numsteps,
             "control": "force", # 1st order
@@ -58,8 +58,8 @@ conf = {
                         {
                             "class": GoalTask,
                             "name": "goaltask",
-                            "goalspace": "s_extero",
-                            "intero_index": 2 * motors, # FIXME: hm ..
+                            "goalspace": "s_proprio",
+                            "intero_index": 6, # FIXME: hm ..
                             "goaldim": motors,
                             "loss": "mse",
                         }
@@ -80,8 +80,8 @@ conf = {
     "analyses": [
         {
             "class": PlotTimeseriesND,
-            "name": "plottimeseriesnd",
-            "type": "pyplot", # "seaborn",
+            "name": "plottimeseries3d",
+            "type": "seaborn", # "pyplot",
             "method": "run"
         },
     ],

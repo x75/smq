@@ -3,19 +3,17 @@
 #+OPTIONS: toc:nil
 
 * Items
-** TODO fix plotting
- - x plotting proper from prototype
-  - x switch to pandas dataframes as structured arrays seem weird
-  - x fix hardcoded tablename
- - x dataframes also solve the column name problem
- - distinguish analyses and plots
- - x make sure plot funcs are dealing with figures and axes, so there
-   can be a final aggregation of different parts into a final figure
-   that can also be saved to print format
+** TODO add robots
+ - x check pointmass kinematic vs. dynamic control: doesn't evenmake
+   sense for kinematic control?
+ - arm
+ - stdr
+ - sphero
+ - cartpole
 
 ** TODO add brains
  - x kinesis
- - taxis
+ - x taxis
  - learning from kinesis / kinesis as explorer
  - im, imol, actinf, eh, iso, ...
  - hyperopt'ing
@@ -25,14 +23,6 @@
   - x increase dimensions 3, 10
   - add force fields
   - add structure and obstacles
-
-** TODO add robots
- - x check pointmass kinematic vs. dynamic control: doesn't evenmake
-   sense for kinematic control?
- - arm
- - stdr
- - sphero
- - cartpole
 
 ** TODO sm space
  - dimensions again: need to be able to access sm variables by name
@@ -50,6 +40,15 @@
   - exteroceptive
   - interoceptive
   - reward system: pain, pleasure, hunger, ...
+** TODO fix plotting
+ - distinguish analyses and plots
+ - x plotting proper from prototype
+   - x switch to pandas dataframes as structured arrays seem weird
+   - x fix hardcoded tablename
+ - x dataframes also solve the column name problem
+ - x make sure plot funcs are dealing with figures and axes, so there
+   can be a final aggregation of different parts into a final figure
+   that can also be saved to print format
 
 ** TODO failsafe
 

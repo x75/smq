@@ -62,7 +62,7 @@ conf = {
                         {
                             "class": GoalTask,
                             "name": "goaltask",
-                            "goalspace": "extero",
+                            "goalspace": "s_extero",
                             "loss": "mse",
                         }
                     ],

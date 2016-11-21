@@ -26,77 +26,7 @@ import numpy as np
 from collections import OrderedDict
 
 from smq.utils import get_items, set_attr_from_dict
-
-#######################################################################
-# copied from smp.environments, methods for constructing explauto based
-# environments
-def get_context_environment(args):
-    from explauto.environment.context_environment import ContextEnvironment
-    
-    if args.system == "pointmass":
-        env_cls, env_conf = get_context_environment_pointmass(args)
-    elif args.system == "simplearm":
-        env_cls, env_conf = get_context_environment_simplearm(args)
-    elif args.system == "morse_copter":
-        env_cls, env_conf = get_context_environment_morse_copter(args)
-
-    # print ("env_conf", env_conf)
-    try:
-        s_ndims = env_conf["s_ndims"]
-    except KeyError, e:
-        s_ndims = len(env_conf["s_mins"])
-    context_mode = dict(mode='mcs',
-                    reset_iterations = args.numsteps, # 100, # 
-                    context_n_dims = s_ndims,
-                    context_sensory_bounds=[env_conf["s_mins"],
-                                            env_conf["s_maxs"]])
-
-    environment = ContextEnvironment(env_cls, env_conf, context_mode)
-    return environment
-    
-def get_context_environment_pointmass(args):
-    from explauto.environment import environments
-    from explauto.environment.pointmass import PointmassEnvironment
-    
-    env_cls = PointmassEnvironment
-    
-    if args.sysdim == "low":
-        env_conf_str = "low_dim_acc_vel"
-        # env_conf_str = "low_dim_full"
-    elif args.sysdim == "low_c1":
-        env_conf_str = "low_dim_acc_vel_c1"
-    elif args.sysdim == "planar":
-        env_conf_str = "planar_dim_acc_vel"
-    elif args.sysdim == "mid":
-        env_conf_str = "mid_dim_acc_vel"
-    elif args.sysdim == "high":
-        env_conf_str = "high_dim_acc_vel"
-    env_conf = environments['pointmass'][1][env_conf_str]
-    return env_cls, env_conf
-
-def get_context_environment_simplearm(args):
-    from explauto.environment import environments
-    
-    env_cls = SimpleDynamicArmEnvironment
-    
-    if args.sysdim == "low":
-        env_conf_str = "low_dimensional"
-        # env_conf_str = "low_dim_full"
-    elif args.sysdim == "mid":
-        env_conf_str = "mid_dimensional"
-    elif args.sysdim == "high":
-        env_conf_str = "high_dimensional"
-        
-    env_conf = environments['simple_arm'][1][env_conf_str]
-    # print("env_cls, env_conf", env_cls, env_conf)
-    return env_cls, env_conf
-
-def get_context_environment_morse_copter(args):
-    from explauto.environment import environments
-    from explauto.environment.morse import CopterMorseEnvironment
-    env_cls = CopterMorseEnvironment
-    env_conf = environments['morse'][1]['copter_attitude']
-    return env_cls, env_conf    
+from smp.environments import get_context_environment, get_context_environment_pointmass, get_context_environment_simplearm, get_context_environment_morse_copter
 
 def make_args_from_(conf):
     """make args Namespace from config variables"""
@@ -107,6 +37,8 @@ def make_args_from_(conf):
         system = "pointmass"
     elif conf["class"].__name__.startswith("SimpleRandomRobot"):
         system = "pointmass"
+    elif conf["class"].__name__.startswith("SimplearmRobot"):
+        system = "simplearm"
         
     if len(conf["dim_s_motor"]) == 1:
         if conf["control"] == "vel":
@@ -140,7 +72,6 @@ class Robot(object):
 
         # default copy conf items into member vars
         set_attr_from_dict(self, conf) # check that this is OK
-
                 
         # sensorimotor space representation
         for k in self.smstruct:
@@ -173,7 +104,7 @@ class Robot(object):
         # print "%s.__init__ full sm dim = %d, names = %s, %s" % (self.__class__.__name__, self.dim, self.dimnames, self.smdict)
         print "%s.__init__ full\n       #dims = %d\n    dimnames = %s\nsmdict_index = %s\n" % \
           (self.__class__.__name__, self.dim, self.dimnames, self.smdict_index)
-          
+                    
         ################################################################################
         # brain only one
         
@@ -190,12 +121,29 @@ class Robot(object):
             brain.robot = self
             
         assert(len(self.brains) == 1) # not ready for that yet
-                
+
+        if self.conf["type"] == "explauto":
+            # print "expl"
+            args = make_args_from_(self.conf)
+            self.env = get_context_environment(args)
+            # print "dir(self.env)", dir(self.env)
+            # print "env_cls", env_cls
+            # print "env_conf", env_conf
+            # reset environment
+            self.env.reset()
+            # print "self.env", self.env
+        
+        # communication / logging
+        # ROS
+        if self.conf["ros"] is True:
+            import rospy
+            rospy.init_node("%s" % self.conf["name"])
+
     def get_sm_index(self, dimgroup, base):
         # FIXME: make the goal dim configurable etc on this level
         return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(self.dim_s_motor)]
     
-    def step(self):
+    def step(self, x):
         """execute one time-step, this refers to updating robot brain with
         new sensor data and producing a prediction"""
         pass
@@ -203,7 +151,7 @@ class Robot(object):
     def update(self, prediction):
         """update the robot/system by 'executing' the prediction"""
         pass
-
+    
 class SimpleRandomRobot(Robot):
     def __init__(self, conf):
         self.conf = conf
@@ -250,10 +198,7 @@ class PointmassRobot(Robot):
         # print "PointmassRobot.conf", conf
         # make args from conf needing numsteps, system, sysdim
         Robot.__init__(self, self.conf)
-        # ROS
-        if self.conf["ros"] is True:
-            import rospy
-            rospy.init_node("%s" % self.conf["name"])
+        
         # robot i/o data, FIXME: pack it all into dictionary
         # self.x = np.zeros((self.sdim, 1))
         # self.y = np.zeros((self.mdim, 1))
@@ -343,3 +288,54 @@ class PointmassRobot(Robot):
         # x_ = self.env.update(prediction, reset=False)
         # print "update: x_", x_.shape
         return x_
+
+
+################################################################################
+# simple arm / explauto
+class SimplearmRobot(Robot):
+    def __init__(self, conf):
+        self.conf = conf
+        Robot.__init__(self, self.conf)
+
+    def get_logdata(self):
+        pass
+        
+    def step(self, x):
+        """step the robot:
+        input is vector of new information $x$ from the world
+
+        essentially: step the robot brain
+        """
+        # debug
+        print "%s.step x.shape = %s" % (self.__class__.__name__, x.shape)
+        
+        # 1. get sensors
+        if x is None: # catch initial state
+            # self.x = np.random.uniform(-1.0, 1.0, (self.sdim, 1))
+            self.smdict["s_proprio"] = np.random.uniform(-1.0, 1.0, (self.dim_s_proprio, 1))
+            self.smdict["s_extero"]  = np.random.uniform(-1.0, 1.0, (self.dim_s_extero,  1))
+        else:
+            self.smdict["s_proprio"] = x[self.dim_s_extero:].copy() # HACK?
+            self.smdict["s_extero"]  = x[:self.dim_s_extero].copy() # HACK?
+            
+        # print "s_pred 1", self.smdict["s_pred"]
+        # 2. m = ask brain to fill in things, no brain yet but hey
+        for brain in self.brains:
+            # print "brain",i
+            self.smdict = brain.step(self.smdict)
+            # print "s_pred 2", self.smdict["s_pred"]
+            prediction = brain.predict_proprio()
+            print "%s.step prediction.shape = %s" %(self.__class__.__name__,  prediction.shape)
+            # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
+            
+        m_ = self.env.compute_motor_command(prediction).T # transpose to comply with smdict
+        print "m_.shape", m_.shape
+        # print "m_", m_.shape, m_, "s_pred", self.smdict["s_pred"]
+        self.smdict["s_pred"] = m_
+        self.smdict["s_motor"] = m_.reshape((self.dim_s_motor, 1))
+        
+        return np.squeeze(self.smdict["s_motor"], axis=1)
+        
+
+    def update(self, prediction):
+        pass

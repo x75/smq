@@ -58,7 +58,7 @@ conf = {
                         {
                             "class": GoalTask,
                             "name": "goaltask",
-                            "goalspace": "extero",
+                            "goalspace": "s_extero",
                             "intero_index": 6, # FIXME: hm ..
                             "goaldim": motors,
                             "loss": "mse",
