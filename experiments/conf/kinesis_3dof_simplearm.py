@@ -10,11 +10,11 @@ Brain: kinesis
  Loss: mean squared error / goal distance
 """
 
-import time
+import time, math
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld
 from smq.robots import SimpleRandomRobot, PointmassRobot, SimplearmRobot
-from smq.plot   import PlotTimeseries, PlotTimeseries2D, PlotTimeseriesND
+from smq.plot   import PlotTimeseries, PlotTimeseries2D, PlotTimeseriesND, PlotExplautoSimplearm
 from smq.tasks  import NullTask, SetpointTask, GoalTask
 from smq.brains import NullBrain, KinesisBrain
 
@@ -40,12 +40,12 @@ conf = {
             # actually: make that lists of names whose length is the dim
             "dim_s_proprio": make_column_names_numbered("j_ang", motors),
             "dim_s_extero": make_column_names_numbered("ee_pos", 2),
-            "dim_s_intero": make_column_names_numbered("j_ang_", motors) + make_column_names_numbered("ee_pos_", motors) + make_column_names_numbered("j_goal", motors),
+            "dim_s_intero": make_column_names_numbered("j_ang_", motors) + make_column_names_numbered("ee_pos_", 2) + make_column_names_numbered("j_ang_goal", motors),
             "dim_s_reward": make_column_names_numbered("dist_goal", 1),
             "dim_s_pred": make_column_names_numbered("j_ang_pred", motors),
             "dim_s_motor": make_column_names_numbered("m", motors),
             "numsteps": numsteps,
-            "control": "force", # 1st order
+            "control": "joint_angle", # 0th order
             "ros": False,
             "brains": [
                 {
@@ -53,13 +53,17 @@ conf = {
                     "name": "kinesisbrain",
                     "dim_s_motor": motors,
                     "variant": "binary_threshold", # "continuous_linear"
+                    "binary_high_range": math.pi/3.0 * 0.01,
+                    "binary_low_range": 0.001,
+                    "binary_threshold": 0.1,
+                    "continuous_gain": 0.5,
                     # tasks be of length either one or same as len(robots)
                     "tasks": [
                         {
                             "class": GoalTask,
                             "name": "goaltask",
                             "goalspace": "s_proprio",
-                            "intero_index": 6, # FIXME: hm ..
+                            "intero_index": 5, # FIXME: hm ..
                             "goaldim": motors,
                             "loss": "mse",
                         }
@@ -79,10 +83,19 @@ conf = {
     "loss": "mse",
     "analyses": [
         {
+            "class": PlotExplautoSimplearm,
+            "name": "plotexplautosimplearm",
+            "type": "pyplot",
+            "method": "run",
+        },
+        {
             "class": PlotTimeseriesND,
             "name": "plottimeseries3d",
             "type": "seaborn", # "pyplot",
-            "method": "run"
+            "method": "run",
+            "cols": ["j_ang%d" % i for i in range(motors)] + ["j_ang_pred%d" % i for i in range(motors)],
+            "cols_goal_base": "j_ang_goal",
+            "cols_goal": ["j_ang_goal%d" % i for i in range(motors)]
         },
     ],
     }

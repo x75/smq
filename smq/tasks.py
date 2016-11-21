@@ -30,8 +30,8 @@ class GoalTask(Task):
 
     def eval(self, x):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
-        # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
-        # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
+        # print '%s.eval x["%s"].shape = %s, goal.shape = %s' % (self.__class__.__name__, self.goalspace, x[self.goalspace].shape, self.goal.shape)
+        print '%s.eval x["%s"] = %s, goal = %s' % (self.__class__.__name__, self.goalspace, x[self.goalspace], self.goal)
         loss = np.sum(np.square(x[self.goalspace] - self.goal))
         # loss = np.sum(np.abs(x["s_extero"] - self.goal))
         # print "loss", loss

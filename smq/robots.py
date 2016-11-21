@@ -28,9 +28,34 @@ from collections import OrderedDict
 from smq.utils import get_items, set_attr_from_dict
 from smp.environments import get_context_environment, get_context_environment_pointmass, get_context_environment_simplearm, get_context_environment_morse_copter
 
+def get_sysdim_string_for_robot(system, dim):
+    if system == "pointmass":
+        if len(dim) == 1:
+            if conf["control"] == "vel":
+                sysdim = "low_c1"
+            else:
+                sysdim = "low"
+        elif len(dim) == 2:
+            sysdim = "planar"
+        elif len(dim) in range(3,10):
+            sysdim = "mid"
+        elif len(dim) >= 10:
+            sysdim = "high"
+
+    elif system == "simplearm":
+        if len(dim) <= 3:
+            sysdim = "low"
+        elif len(dim) > 3 and len(dim) <= 7:
+            sysdim = "mid"
+        elif len(dim) > 7 and len(dim) <= 10:
+            sysdim = "high"
+            
+    return sysdim
+
 def make_args_from_(conf):
     """make args Namespace from config variables"""
     from argparse import Namespace
+    # print "conf", conf
     args = Namespace()
 
     if conf["class"].__name__.startswith("PointmassRobot"):
@@ -39,19 +64,9 @@ def make_args_from_(conf):
         system = "pointmass"
     elif conf["class"].__name__.startswith("SimplearmRobot"):
         system = "simplearm"
-        
-    if len(conf["dim_s_motor"]) == 1:
-        if conf["control"] == "vel":
-            sysdim = "low_c1"
-        else:
-            sysdim = "low"
-    elif len(conf["dim_s_motor"]) == 2:
-        sysdim = "planar"
-    elif len(conf["dim_s_motor"]) in range(3,10):
-        sysdim = "mid"
-    elif len(conf["dim_s_motor"]) >= 10:
-        sysdim = "high"
-    
+
+    sysdim = get_sysdim_string_for_robot(system, conf["dim_s_motor"])
+                
     setattr(args, "system", system)
     setattr(args, "sysdim", sysdim)
     setattr(args, "numsteps", conf["numsteps"])
@@ -286,7 +301,7 @@ class PointmassRobot(Robot):
         x_ = np.atleast_2d(self.env.compute_sensori_effect(prediction)).T
         # self.x = self.env.update(prediction)
         # x_ = self.env.update(prediction, reset=False)
-        # print "update: x_", x_.shape
+        print "update: x_", x_.shape
         return x_
 
 
@@ -298,7 +313,10 @@ class SimplearmRobot(Robot):
         Robot.__init__(self, self.conf)
 
     def get_logdata(self):
-        pass
+        logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
+        print "%s.get_logdata, logdata.shape = %s, self.dim = %d" % (self.__class__.__name__, logdata.shape, self.dim)
+        # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
+        return logdata
         
     def step(self, x):
         """step the robot:
@@ -325,17 +343,30 @@ class SimplearmRobot(Robot):
             self.smdict = brain.step(self.smdict)
             # print "s_pred 2", self.smdict["s_pred"]
             prediction = brain.predict_proprio()
-            print "%s.step prediction.shape = %s" %(self.__class__.__name__,  prediction.shape)
+            print "%s.step prediction.shape = %s, %s" %(self.__class__.__name__,  prediction.shape, prediction)
             # a_ = np.random.uniform(-0.1, 0.1, (1, self.dim_s_motor))
             
-        m_ = self.env.compute_motor_command(prediction).T # transpose to comply with smdict
-        print "m_.shape", m_.shape
+        m_ = self.env.env.compute_motor_command(prediction.reshape(self.dim_s_motor,)).reshape((self.dim_s_motor, 1)) # transpose to comply with smdict
+        print "m_.shape", m_.shape, m_.T == prediction
         # print "m_", m_.shape, m_, "s_pred", self.smdict["s_pred"]
+        self.smdict["s_proprio"] = m_
         self.smdict["s_pred"] = m_
         self.smdict["s_motor"] = m_.reshape((self.dim_s_motor, 1))
         
         return np.squeeze(self.smdict["s_motor"], axis=1)
-        
 
     def update(self, prediction):
-        pass
+        dim_sum = self.dim_s_extero + self.dim_s_proprio
+        # for simple_arm, this computes only exteroceptive sensory feedback
+        x_extero = np.atleast_2d(self.env.compute_sensori_effect(prediction)).T
+        # so we have to squeeze in the proprio stuff
+        x_ = np.zeros((dim_sum * 2, 1))
+        x_[:self.dim_s_extero] = x_extero[:self.dim_s_extero]
+        x_[self.dim_s_extero:self.dim_s_extero+self.dim_s_proprio] = self.smdict["s_proprio"]
+        x_[dim_sum:dim_sum+self.dim_s_extero] = x_extero[self.dim_s_extero:]
+        x_[dim_sum+self.dim_s_extero:] = self.smdict["s_proprio"]
+        # self.x = self.env.update(prediction)
+        # x_ = self.env.update(prediction, reset=False)
+        print "%s.update: x_.shape = %s, wanted = %s, x_ = %s" % (self.__class__.__name__, x_.shape, ((dim_sum) * 2, 1), x_)
+        assert(x_.shape == ((self.dim_s_extero + self.dim_s_proprio) * 2, 1))
+        return x_
