@@ -164,11 +164,12 @@ class Experiment(object):
             # 6. repeat
 
             # TODO: realtime mode: delay next iteration for realtime plotting and visualization
-        # print "log.log_store", log.log_store
+        # store logs, FIXME incrementally
         for k,v in log.log_lognodes.items():
             print "k", k, "v", type(v)
             log.log_store[k] = v
-            
+
+        # run analyses
         self.analyse()
 
 
