@@ -183,15 +183,21 @@ class GoalTaskTaxis2(Task2):
         
     def synthesize_goal(self):
         # FIXME: general dimension, goal choice, interest model ...
+        # goal itself must be structured
         self.goal = np.random.uniform(-0.7, 0.7, (self.goal_dims_num, 1))
-        goal_sm_idx = self.brain.get_sm_index("s_intero", "vel_goal")
-        self.brain.smdict["s_intero"][goal_sm_idx] = self.goal
+        # print self.goal_dims
+        
+        # goal_sm_idx = self.brain.get_sm_index("s_intero", "vel_goal")
+        # self.brain.smdict["s_intero"][goal_sm_idx] = self.goal
+        
+        for k,v in self.goal_dims.items():
+            self.brain.smdict[k][v] = self.goal
 
     def eval(self, x, i):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
         # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
         # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
-        error_sm_idx = self.brain.get_sm_index("s_intero", "vel_error")
+        # error_sm_idx = self.brain.get_sm_index("s_intero", "vel_error")
         # print '%s.%s error_sm_idx = %s' % (self.__class__.__name__, self.eval2.__name__, error_sm_idx)
 
         goal_comparison = np.vstack([x[k][self.goal_dims[k]] for k in self.goal_dims.keys()])

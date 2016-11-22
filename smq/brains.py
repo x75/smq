@@ -302,7 +302,8 @@ class TaxisBrain2(Brain2):
 
     def predict_proprio(self):
         error_cart_level = 0.1
-        gain = 0.05
+        # gain = 0.05
+        gain = self.gain
 
         for i, task in enumerate(self.tasks):        
             # cartesian error
@@ -310,7 +311,7 @@ class TaxisBrain2(Brain2):
             error_cart = self.smdict["s_intero"][task.intero_error_idx_num]
 
             # add noise to error
-            # error_cart += np.random.normal(0, error_cart_level, error_cart.shape)
+            error_cart += np.random.normal(0, error_cart_level, error_cart.shape)
 
             # prediction based on cartesian error, accounting for both angular
             # and absolute value error components
