@@ -500,3 +500,82 @@ class PointmassRobot2(Robot2):
     def compute_sensors(self):
         """compute the proprio and extero sensor values from state"""
         return 
+
+def forward(angles, lengths):
+    """ Link object as defined by the standard DH representation.
+
+    :param list angles: angles of each joint
+
+    :param list lengths: length of each segment
+
+    :returns: a tuple (x, y) of the end-effector position
+
+    .. warning:: angles and lengths should be the same size.
+    """
+    x, y = joint_positions(angles, lengths)
+    return x[-1], y[-1]
+
+def joint_positions(angles, lengths, unit='rad'):
+    """ Link object as defined by the standard DH representation.
+
+    :param list angles: angles of each joint
+
+    :param list lengths: length of each segment
+
+    :returns: x positions of each joint, y positions of each joints, except the first one wich is fixed at (0, 0)
+
+    .. warning:: angles and lengths should be the same size.
+    """
+    if len(angles) != len(lengths):
+        raise ValueError('angles and lengths must be the same size!')
+
+    if unit == 'rad':
+        a = np.array(angles)
+    elif unit == 'std':
+        a = np.pi * np.array(angles)
+    else:
+        raise NotImplementedError
+     
+    a = np.cumsum(a)
+    return np.cumsum(np.cos(a)*lengths), np.cumsum(np.sin(a)*lengths)
+    
+class SimpleArmRobot(Robot2):
+    def __init__(self, conf, ifs_conf):
+        Robot2.__init__(self, conf, ifs_conf)
+        
+        # self.length_ratio = length_ratio
+        # self.noise = noise
+
+        self.factor = 1.0
+
+        self.lengths = self.compute_lengths(self.dim_s_motor, self.length_ratio)
+
+        self.m = np.zeros((self.dim_s_motor, 1))
+
+    def compute_lengths(self, n_dofs, ratio):
+        l = np.ones(n_dofs)
+        for i in range(1, n_dofs):
+            l[i] = l[i-1] / ratio
+        return l / sum(l)
+
+    def compute_motor_command(self, m):
+        m *= self.factor
+        return np.clip(m, self.m_mins, self.m_maxs)
+
+    def step(self, world, x):
+        """update the robot, pointmass"""
+        print "%s.step world = %s, x = %s" % (self.__class__.__name__, world, x)
+        # print "x", x.shape
+        self.m = self.compute_motor_command(self.m + x)# .reshape((self.dim_s_motor, 1))
+        
+        # print "m", m
+        # self.apply_force(x)
+        return {"s_proprio": self.m, # self.compute_sensors_proprio(),
+                "s_extero": self.compute_sensors_extero()}
+
+    def compute_sensors_extero(self):
+        hand_pos = np.array(forward(self.m, self.lengths)).reshape((self.dim_s_extero, 1))
+        hand_pos += self.sysnoise * np.random.randn(*hand_pos.shape)
+        # print "hand_pos", hand_pos.shape
+        return hand_pos
+                

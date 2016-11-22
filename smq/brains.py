@@ -303,9 +303,9 @@ class TaxisBrain2(Brain2):
     def predict_proprio(self):
         error_cart_level = 0.1
         gain = 0.05
-        # cartesian error, FIXME: more general with respect to the variable keys
 
         for i, task in enumerate(self.tasks):        
+            # cartesian error
             # error_cart = self.smdict["s_intero"][self.get_sm_index("s_intero", "vel_error")]
             error_cart = self.smdict["s_intero"][task.intero_error_idx_num]
 

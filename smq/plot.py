@@ -213,7 +213,7 @@ class PlotTimeseriesND(Plot):
 
         g = sns.PairGrid(df2)
         g.map_diag(pl.hist)
-        g.map_offdiag(pl.hexbin, cmap="gray", gridsize=30);
+        g.map_offdiag(pl.hexbin, cmap="gray", gridsize=30, bins="log");
 
         # print "dir(g)", dir(g)
         # print g.diag_axes
