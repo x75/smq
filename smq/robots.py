@@ -159,12 +159,13 @@ class Robot(object):
         return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(self.dim_s_motor)]
     
     def step(self, x):
-        """execute one time-step, this refers to updating robot brain with
-        new sensor data and producing a prediction"""
+        """execute one time-step of the robot brain with
+        new sensor data as input and producing a prediction"""
         pass
 
     def update(self, prediction):
-        """update the robot/system by 'executing' the prediction"""
+        """execute one time-step of the world with robot proprio predictions as input
+        and producing new world and sensory state"""
         pass
     
 class SimpleRandomRobot(Robot):

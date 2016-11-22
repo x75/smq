@@ -76,12 +76,13 @@ class RobotWorld(World):
             # now action is out in the world
             
             # update robot's state by interaction with world
-            robotdict["input"] = self.update_robot[i](robot, y) # FIXME
+            robin = self.update_robot[i](robot, y) # FIXME
             # TODO: self.update_world(), maybe does something with the input
             # task: tasks and robots are synchronised arrays so we use common loop
             # evaluate task and use feedback as sensors for robot/brain
+            
             # debug
-            print "%s.step robotdict[\"input\"].shape = %s, %s" % (self.__class__.__name__, robotdict["input"].shape, robotdict["input"])
+            # print "%s.step robotdict[\"input\"].shape = %s, %s" % (self.__class__.__name__, robotdict["input"].shape, robotdict["input"])
             # print "robot.x.shape = %s, %s" % (robot.x.shape, robot.x)
             # print "robot.y.shape = %s, %s" % (robot.y.shape, robot.y)
             
@@ -96,6 +97,9 @@ class RobotWorld(World):
             # now = time.time()
             log.log3(robot.conf["name"], logdata)
             # print "%s.step log3 took %f s" % (self.__class__.__name__, time.time() - now)
+
+            # update persistent storage
+            robotdict["input"] = robin
             
         # update time
         self.time += self.dt
