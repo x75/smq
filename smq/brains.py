@@ -210,6 +210,9 @@ class Brain2(object):
         # assert one reward for each task?
         assert(len(self.tasks) == self.dim_s_reward)
 
+    def get_sm_index(self, dimgroup, base):
+        return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(self.dim_s_motor)]
+        
     def get_logdata(self):
         """collect all internal variables, stack them into one vector and
         return that"""
@@ -291,4 +294,60 @@ class KinesisBrain2(Brain2):
 
         # FIXME: currently last task wins. reset s_pred to zero, accumulate
         # predictions respecting previously computed values
+        return self.smdict["s_pred"]
+
+class TaxisBrain2(Brain2):
+    def __init__(self, conf, ifs_conf):
+        Brain2.__init__(self, conf, ifs_conf)
+
+    def predict_proprio(self):
+        error_cart_level = 0.1
+        gain = 0.05
+        # cartesian error, FIXME: more general with respect to the variable keys
+        
+        error_cart = self.smdict["s_intero"][self.get_sm_index("s_intero", "vel_error")]
+
+        # add noise to error
+        # error_cart += np.random.normal(0, error_cart_level, error_cart.shape)
+
+        # prediction based on cartesian error, accounting for both angular
+        # and absolute value error components
+        # pred = error_cart * -gain + np.random.normal(0.01, 0.01, error_cart.shape)
+
+        # debug
+        # print "%s.predict_proprio: error_cart = %s, pred = %s" % (self.__class__.__name__, error_cart, pred)
+        
+
+        # prediction based on directional error only, with a fixed absolute
+        # value component
+        #
+
+        if self.dim_s_motor > 1:
+            # transform cartesian to polar
+            error_pol = ct_car2pol(error_cart)
+    
+            print "error_cart", error_cart, "error_pol", error_pol
+            
+            # prepare argument
+            arrarg  = error_pol[1:].reshape(error_cart.shape[0]-1, )
+            # arrarg += np.random.normal(0.0, 0.1, arrarg.shape)
+    
+            # print "error_arg", arrarg
+            
+            # transform back to cartesian
+            pred = -ct_pol2car(gain, arrarg).reshape(error_cart.shape)
+        else:
+            pred = error_cart * -gain
+
+        # print "%s.predict_proprio: error_pol = %s, pred = %s" % (self.__class__.__name__, error_pol, pred)
+        
+        # # FIXME: control indexing shape
+        # pred_idx = self.robot.get_sm_index("s_pred", "acc_pred")
+        # # pred_idx = map(list, zip(*pred_idx))        
+        # print "%s.predict_proprio: pred_idx = %s" % (self.__class__.__name__, pred_idx)
+        # self.smdict["s_pred"][pred_idx] = pred
+        # return self.smdict["s_pred"].T
+        
+        self.smdict["s_pred"] = pred
+        # make sure shape is (1, dim)
         return self.smdict["s_pred"]

@@ -87,7 +87,7 @@ class Task2(object):
         self.conf = conf
         set_attr_from_dict(self, self.conf)
 
-    def eval(self, x):
+    def eval(self, x, i):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
         x["s_reward"][0,0] = 0
         return x
@@ -142,5 +142,79 @@ class GoalTask2(Task2):
         x["s_intero"][self.intero_error_idx_num] = self.error # FIXME: hard-coded index?
         x["s_reward"][i,0] = loss
 
+        return x
+    
+class GoalTaskTaxis2(Task2):
+    def __init__(self, conf):
+        Task2.__init__(self, conf)
+
+        self.goal_dims_num = 0
+        self.goal_dims = {}
+
+        # numerical indices into s_intero for goal and error
+        self.intero_goal_idx_num =  []
+        self.intero_error_idx_num = []
+        
+    def prepare(self, brain):
+        # keep reference to brain
+        self.brain = brain
+        # some index magic for goal reference variables
+        for k,v in self.goal_dims_dict.items():
+            self.goal_dims[k] = []
+            for gdim in v:
+                # print v, self.brain.smdict_index[k]
+                self.goal_dims[k].append(self.brain.smdict_index[k][gdim])
+                self.goal_dims_num += 1
+
+        # index magic for goal and error variables
+        for item in self.intero_goal_idx:
+            # print item
+            self.intero_goal_idx_num.append(self.brain.smdict_index["s_intero"][item])
+        for item in self.intero_error_idx:
+            # print item
+            self.intero_error_idx_num.append(self.brain.smdict_index["s_intero"][item])
+
+        # print self.intero_goal_idx_num, self.intero_error_idx_num
+              
+        # print "self.goal_dims", self.goal_dims
+        # self.goal = np.random.uniform(-0.7, 0.7, (self.goal_dims_num, 1))
+        self.synthesize_goal()
+        self.error = np.zeros_like(self.goal)
+        
+    def synthesize_goal(self):
+        # FIXME: general dimension, goal choice, interest model ...
+        self.goal = np.random.uniform(-0.7, 0.7, (self.goal_dims_num, 1))
+        goal_sm_idx = self.brain.get_sm_index("s_intero", "vel_goal")
+        self.brain.smdict["s_intero"][goal_sm_idx] = self.goal
+
+    def eval(self, x, i):
+        """evaluate task over x, x being an smdict at time t, requires local memory"""
+        # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
+        # print '%s.eval x["s_extero"].shape = %s, goal.shape = %s' % (self.__class__.__name__, x["s_extero"].shape, self.goal.shape)
+        error_sm_idx = self.brain.get_sm_index("s_intero", "vel_error")
+        # print '%s.%s error_sm_idx = %s' % (self.__class__.__name__, self.eval2.__name__, error_sm_idx)
+
+        goal_comparison = np.vstack([x[k][self.goal_dims[k]] for k in self.goal_dims.keys()])
+        assert(goal_comparison.shape == self.goal.shape)
+        self.error = goal_comparison - self.goal
+        
+        # error = x["s_extero"] - self.goal
+        # print "%s.eval: error = %s" % (self.__class__.__name__, error)
+        # loss = np.sum(np.square(x["s_extero"] - self.goal))
+        # loss = np.sum(np.abs(x["s_extero"] - self.goal))
+        # print "loss", loss
+        # loss = np.sum(np.square(self.error))
+        loss = np.sum(np.abs(self.error))
+        
+        # x["s_reward"][0,0] = loss
+        x["s_intero"][self.intero_goal_idx_num] = self.goal # FIXME: hard-coded index?
+        x["s_intero"][self.intero_error_idx_num] = self.error # FIXME: hard-coded index?
+        # self.brain.smdict["s_intero"][error_sm_idx] = self.error
+        x["s_reward"][i,0] = loss
+        
+        # print '%s.eval x["s_intero"] = %s' % (self.__class__.__name__, x["s_intero"])
+        # x["s_intero"][2] = self.goal # FIXME: hard-coded index?
+        # x["s_intero"][goal] = self.goal # FIXME: hard-coded index?
+        # print "Task eval", x
         return x
     
