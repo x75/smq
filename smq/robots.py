@@ -28,10 +28,10 @@ from collections import OrderedDict
 from smq.utils import get_items, set_attr_from_dict
 from smp.environments import get_context_environment, get_context_environment_pointmass, get_context_environment_simplearm, get_context_environment_morse_copter
 
-def get_sysdim_string_for_robot(system, dim):
+def get_sysdim_string_for_robot(system, dim, control = None):
     if system == "pointmass":
         if len(dim) == 1:
-            if conf["control"] == "vel":
+            if control == "vel":
                 sysdim = "low_c1"
             else:
                 sysdim = "low"
@@ -65,7 +65,7 @@ def make_args_from_(conf):
     elif conf["class"].__name__.startswith("SimplearmRobot"):
         system = "simplearm"
 
-    sysdim = get_sysdim_string_for_robot(system, conf["dim_s_motor"])
+    sysdim = get_sysdim_string_for_robot(system, conf["dim_s_motor"], conf["control"])
                 
     setattr(args, "system", system)
     setattr(args, "sysdim", sysdim)
@@ -371,3 +371,132 @@ class SimplearmRobot(Robot):
         print "%s.update: x_.shape = %s, wanted = %s, x_ = %s" % (self.__class__.__name__, x_.shape, ((dim_sum) * 2, 1), x_)
         assert(x_.shape == ((self.dim_s_extero + self.dim_s_proprio) * 2, 1))
         return x_
+
+################################################################################
+class Robot2(object):
+    def __init__(self, conf, ifs_conf):
+        self.conf = conf
+        set_attr_from_dict(self, conf) # check that this is OK
+
+        self.dim = 0
+        self.dimnames = []
+        self.smdict       = OrderedDict()
+        self.smdict_index = OrderedDict()
+        self.ifs = []
+
+        # interface
+        for k in ifs_conf.keys():
+            # print "k", k
+            self.ifs.append(k)
+            # smdict key
+            k_   = k.replace("dim_", "")
+            # dim of that part is length of fields array
+            dim_ = len(ifs_conf[k])
+            # set the class attribute
+            setattr(self, k, dim_)
+            # count overall dims
+            self.dim += dim_
+            # collect all variable names
+            self.smdict_index[k_] = {}
+            for i, dimname in enumerate(ifs_conf[k]):
+                # this is local index for given dim group
+                self.smdict_index[k_][dimname] = i
+                # this is globally associated with self.sm
+                self.dimnames.append(dimname)
+                
+            self.smdict[k_] = np.zeros((dim_, 1))
+            
+        print "%s.__init__ self.smdict = %s" % (self.__class__.__name__, self.smdict)
+        
+    def get_logdata(self):
+        """collect all internal variables, stack them into one vector and
+        return that"""
+        logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
+        print "%s.get_logdata, logdata.shape = %s, self.dim = %d" % (self.__class__.__name__, logdata.shape, self.dim)
+        # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
+        return logdata
+    
+    def step(self, world, x):
+        """update the robot body respecting effects of the world"""
+        print "%s.step world = %s, x = %s" % (self.__class__.__name__, world, x)
+        return {"s_proprio": np.zeros((self.dim_s_proprio, 1)), "s_extero": np.zeros((self.dim_s_extero, 1))}
+
+class NullRobot2(Robot2):
+    def __init__(self, conf, ifs_conf):
+        Robot2.__init__(self, conf, ifs_conf)
+    
+class PointmassRobot2(Robot2):
+    def __init__(self, conf, ifs_conf):
+        Robot2.__init__(self, conf, ifs_conf)
+
+        # state is (pos, vel, acc).T
+        # self.state_dim
+        self.x0 = np.zeros((self.statedim, 1))
+        self.x  = self.x0.copy()
+        self.cnt = 0
+
+    def reset(self):
+        self.x = self.x0.copy()
+        
+    def step(self, world, x):
+        """update the robot, pointmass"""
+        print "%s.step world = %s, x = %s" % (self.__class__.__name__, world, x)
+        self.apply_force(x)
+        return {"s_proprio": self.compute_sensors_proprio(),
+                "s_extero": self.compute_sensors_extero()}
+        
+    def bound_motor(self, m):
+        return np.clip(m, self.force_min, self.force_max)
+
+    def apply_force(self, u):
+        """control pointmass with force command (2nd order)"""
+        # print "u", u
+        # FIXME: insert motor transfer function
+        a = (u/self.mass).reshape((self.dim_s_motor, 1))
+        # a += np.random.normal(0.05, 0.01, a.shape)
+
+        # # world modification
+        # if np.any(self.x[:self.dim_s_motor] > 0):
+        #     a += np.random.normal(0.05, 0.01, a.shape)
+        # else:
+        #     a += np.random.normal(-0.1, 0.01, a.shape)
+            
+        # print("a.shape", a.shape)
+        # print "a", a, self.x[self.conf.s_ndims/2:]
+        v = self.x[self.dim_s_motor:self.dim_s_motor*2] * (1 - self.friction) + a * self.dt
+        
+        # self.a_ = a.copy()
+        
+        
+        # # world modification
+        # v += np.sin(self.cnt * 0.01) * 0.05
+        
+        # print "v", v
+        p = self.x[:self.dim_s_motor] + v * self.dt
+
+        # collect temporary state description into joint state vector
+        self.x[:self.dim_s_motor] = p.copy()
+        self.x[self.dim_s_motor:self.dim_s_motor*2] = v.copy()
+        self.x[self.dim_s_motor*2:] = a.copy()
+
+        # apply noise
+        self.x += self.sysnoise * np.random.randn(self.x.shape[0], self.x.shape[1])
+
+        # print "self.x[2,0]", self.x[2,0]
+
+        # self.scale()
+        # self.pub()                
+        self.cnt += 1
+        
+        # return x
+        # self.x = x # pointmasslib.simulate(self.x, [u], self.dt)
+
+    def compute_sensors_proprio(self):
+        return self.x[self.dim_s_motor*2:]
+    
+    def compute_sensors_extero(self):
+        return self.x[self.dim_s_motor:self.dim_s_motor*2]
+    
+    def compute_sensors(self):
+        """compute the proprio and extero sensor values from state"""
+        return 

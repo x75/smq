@@ -15,6 +15,19 @@ def get_items(items_conf):
     # return list
     return items
 
+def get_items2(conf, item = None):
+    """generic function creating a list of objects from a config specification
+    objects are: analyses, robots, worlds, tasks, losses, ...
+    """
+    if item is None: return
+    items = []
+    for i, item_conf in enumerate(conf[item]):
+        # instantiate an item of class "class" with the given configuration
+        # and append to list
+        items.append(item_conf["class"](item_conf, conf["ifs"][i]))
+    # return list
+    return items
+
 def set_attr_from_dict(obj, dictionary):
     """set attributes of an object with names from the dictionary's keys and their values from the dictionary's values"""
     for k,v in dictionary.items():

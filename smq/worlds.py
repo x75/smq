@@ -8,7 +8,8 @@ import numpy as np
 
 import smq.logging as log
 
-from robots import Robot
+from robots import Robot, Robot2
+from brains import Brain2
 
 class World(object):
     def __init__(self, conf):
@@ -61,6 +62,7 @@ class RobotWorld(World):
         # print "self.time", self.time
         # Y = []
         for i,robotdict in enumerate(self.robots):
+            print "robotdict", robotdict
             # temporary helpers
             robot = robotdict["robot"] # get the smq.robots.Robot instance
             robin = robotdict["input"] # get the associated input item
@@ -127,3 +129,53 @@ class RobotWorld(World):
                     log.init_log3_block(item.conf["name"], item.dim, tbl_columns = columns, numsteps = self.numsteps)
         else:
             print self.__class__.__name__, "add(): requires list"
+
+################################################################################
+#
+class RobotWorld2(RobotWorld):
+    def __init__(self, conf):
+        RobotWorld.__init__(self, conf)
+        self.brains = []
+
+    def step(self):
+        for i in range(len(self.brains)):
+            brain = self.brains[i]
+            robot = self.robots[i]
+            print "%s.step self.brains[%d] = %s" % (self.__class__.__name__, i, brain)
+            print "%s.step self.robots[%d] = %s" % (self.__class__.__name__, i, robot)
+            # robot = robotdict["robot"]   # get the smq.robots.Robot instance
+            # robin = robotdict["sensors"] # get the associated sensors item
+            y = brain["brain"].step(robot["sensors"])
+            robot["sensors"] = robot["robot"].step(self, y) # self.update_robot[i](robot, y) # FIXME
+            
+            # log all brain and robot module data for current timestep
+            for k,v in {"brain": brain, "robot": robot}.items():
+                logdata = v[k].get_logdata()
+                # print "logdata.shape", logdata.shape
+                # now = time.time()
+                log.log3(v[k].conf["name"], logdata)
+                # print "%s.step log3 took %f s" % (self.__class__.__name__, time.time() - now)
+            
+        self.time += self.dt
+
+    def add(self, items):
+        if items.__class__ == list:
+            # print "it's a list"
+            for i, item in enumerate(items):
+                # print "item #%d" % i
+                if isinstance(item, Robot2):
+                    print "%s.add'ing a robot %s" % (self.__class__.__name__, item)
+                    # self.robots.append({"robot": item, "sensors": np.zeros((item.dim_s_proprio + item.dim_s_extero, 1))})
+                    self.robots.append({"robot": item,
+                                        "sensors": {"s_proprio": np.zeros((item.dim_s_proprio, 1)),
+                                                    "s_extero" : np.zeros((item.dim_s_extero, 1))}})
+                    columns = [a for a in item.dimnames]
+                    log.init_log3_block(item.conf["name"], item.dim, tbl_columns = columns, numsteps = self.numsteps)
+                elif isinstance(item, Brain2):
+                    print "%s.add'ing a brain %s" % (self.__class__.__name__, item)
+                    self.brains.append({"brain": item, "motors": np.zeros((item.dim_s_motor, 1))})
+                    columns = [a for a in item.dimnames]
+                    log.init_log3_block(item.conf["name"], item.dim, tbl_columns = columns, numsteps = self.numsteps)
+        else:
+            print self.__class__.__name__, "add(): requires list"
+

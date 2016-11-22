@@ -19,11 +19,12 @@ Providing
 """
 
 from smq.experiments import get_args
-from smq.experiments import Experiment
+from smq.experiments import Experiment, Experiment2
 
 def main(args):
     # create experiment
-    expr = Experiment(args)
+    # expr = Experiment(args)
+    expr = Experiment2(args)
 
     # FIXME: ROS
     # run experiment

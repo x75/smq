@@ -47,6 +47,7 @@ class PlotTimeseries(Plot):
         # create figure
         fig = pl.figure()
         fig.suptitle("Experiment %s" % (log.h5file.title))
+        # fig.suptitle("Experiment %s" % (self.title))
         for i in range(data.shape[0]): # loop over data items
             ax1 = pl.subplot2grid((data.shape[0], 2), (i, 0))
             ax1 = self.make_plot_timeseries(ax1, data[i], columns[i])
@@ -253,3 +254,56 @@ class PlotExplautoSimplearm(Plot):
             item.env.env.plot_arm(ax = ax, m = goals.values[0], c="r")
         pl.show()
         
+
+################################################################################
+class PlotTimeseries2(Plot):
+    def __init__(self, conf):
+        Plot.__init__(self, conf)
+
+    def run(self, items):
+        # how many axes / plotitems
+        # configure subplotgrid
+        
+        tbl_key = items[0].name
+        # tbl_key = items[0].conf["name"]
+        print "tbl_key", tbl_key
+        df = log.log_lognodes[tbl_key]
+        
+        # data = log.h5file.root.item_pm_data.read()
+        # data = log.log_lognodes["pm"].values.T
+        # columns = log.log_lognodes["pm"].columns
+        
+        data = df.values.T
+        columns = df.columns
+
+        # print "data.shape", data.shape
+
+        pl.ioff()
+        # create figure
+        fig = pl.figure()
+        fig.suptitle("Experiment %s, module %s" % (self.title, tbl_key))
+        for i in range(data.shape[0]): # loop over data items
+            ax1 = pl.subplot2grid((data.shape[0], 2), (i, 0))
+            ax1 = self.make_plot_timeseries(ax1, data[i], columns[i])
+            
+            ax2 = pl.subplot2grid((data.shape[0], 2), (i, 1)) # second plotgrid column
+            ax2 = self.make_plot_histogram(ax2, data[i], columns[i])
+
+        # global for plot, use last axis
+        ax1.set_xlabel("t [steps]")
+        ax2.set_xlabel("counts")
+        
+        # fig.show() # this doesn't work
+        pl.show()
+
+    def make_plot_timeseries(self, ax, data, columns):
+        ax.plot(data, "k-", alpha=0.5)
+        # print "columns[i]", type(columns[i])
+        ax.legend(["%s" % (columns)])
+        return ax
+
+    def make_plot_histogram(self, ax, data, columns):
+        ax.hist(data, bins=20, orientation="horizontal")
+        ax.legend(["%s" % (columns)])
+        # pl.hist(data.T, bins=20, orientation="horizontal")
+        return ax
