@@ -141,8 +141,9 @@ class RobotWorld2(RobotWorld):
         for i in range(len(self.brains)):
             brain = self.brains[i]
             robot = self.robots[i]
-            print "%s.step self.brains[%d] = %s" % (self.__class__.__name__, i, brain)
-            print "%s.step self.robots[%d] = %s" % (self.__class__.__name__, i, robot)
+            # debug
+            # print "%s.step self.brains[%d] = %s" % (self.__class__.__name__, i, brain)
+            # print "%s.step self.robots[%d] = %s" % (self.__class__.__name__, i, robot)
             # robot = robotdict["robot"]   # get the smq.robots.Robot instance
             # robin = robotdict["sensors"] # get the associated sensors item
             y = brain["brain"].step(robot["sensors"])

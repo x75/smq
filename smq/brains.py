@@ -217,7 +217,7 @@ class Brain2(object):
         """collect all internal variables, stack them into one vector and
         return that"""
         logdata = np.atleast_2d(np.vstack([self.smdict[k] for k in self.smdict.keys()]))
-        print "%s.get_logdata, logdata.shape = %s, self.dim = %d" % (self.__class__.__name__, logdata.shape, self.dim)
+        # print "%s.get_logdata, logdata.shape = %s, self.dim = %d" % (self.__class__.__name__, logdata.shape, self.dim)
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
         return logdata
     

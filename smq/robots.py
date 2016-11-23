@@ -22,8 +22,15 @@ A robot contains a body, defined set of internal states, given brain, ...
 
 # TODO: pm, sa, random, sphero, morse, nao, ...
 
+import time
 import numpy as np
 from collections import OrderedDict
+
+try:
+    import rospy
+    from tf.transformations import euler_from_quaternion, quaternion_from_euler
+except Exception, e:
+    print "import rospy failed", e
 
 from smq.utils import get_items, set_attr_from_dict
 from smp.environments import get_context_environment, get_context_environment_pointmass, get_context_environment_simplearm, get_context_environment_morse_copter
@@ -152,7 +159,7 @@ class Robot(object):
         # ROS
         if self.conf["ros"] is True:
             import rospy
-            rospy.init_node("%s" % self.conf["name"])
+            # rospy.init_node("%s" % self.conf["name"])
 
     def get_sm_index(self, dimgroup, base):
         # FIXME: make the goal dim configurable etc on this level
@@ -178,7 +185,7 @@ class SimpleRandomRobot(Robot):
         # ROS
         if self.conf["ros"] is True:
             import rospy
-            rospy.init_node("%s" % self.conf["name"])
+            # rospy.init_node("%s" % self.conf["name"])
         self.x = np.zeros((self.dim_s_proprio, 1))
         self.y = np.zeros((self.dim_s_motor, 1))
         
@@ -373,6 +380,7 @@ class SimplearmRobot(Robot):
         return x_
 
 ################################################################################
+# v2 style
 class Robot2(object):
     def __init__(self, conf, ifs_conf):
         self.conf = conf
@@ -405,9 +413,27 @@ class Robot2(object):
                 self.dimnames.append(dimname)
                 
             self.smdict[k_] = np.zeros((dim_, 1))
+
+        # ROS
+        if self.ros:
+            # rospy.init_node(self.name)
+            self.subs = {}
+            self.pubs = {}
             
         print "%s.__init__ self.smdict = %s" % (self.__class__.__name__, self.smdict)
         
+    def get_sm_index(self, dimgroup, base, numk = None):
+        if numk is None:
+            numk = self.dim_s_motor
+        # FIXME: make the goal dim configurable etc on this level
+        return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(numk)]
+
+    def get_sm_index_single(self, dimgroup, base, numk):
+        if numk is None:
+            numk = 0
+        # FIXME: make the goal dim configurable etc on this level
+        return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in [numk]]
+    
     def get_logdata(self):
         """collect all internal variables, stack them into one vector and
         return that"""
@@ -501,6 +527,8 @@ class PointmassRobot2(Robot2):
         """compute the proprio and extero sensor values from state"""
         return 
 
+    
+    
 def forward(angles, lengths):
     """ Link object as defined by the standard DH representation.
 
@@ -579,3 +607,104 @@ class SimpleArmRobot(Robot2):
         # print "hand_pos", hand_pos.shape
         return hand_pos
                 
+class STDRCircularRobot(Robot2):
+    def __init__(self, conf, ifs_conf):
+        Robot2.__init__(self, conf, ifs_conf)
+
+        if not self.ros:
+            import sys
+            print "ROS not configured but this robot (%s) requires ROS, exiting" % (self.__class__.__name__)
+            sys.exit(1)
+        # timing
+        self.rate = rospy.Rate(1/self.dt)
+            
+        # pub / sub
+        from nav_msgs.msg      import Odometry
+        from geometry_msgs.msg import Twist
+        from sensor_msgs.msg   import Range
+
+        # actuator / motors
+        self.twist = Twist()
+        self.twist.linear.x = 0
+        self.twist.linear.y = 0
+        self.twist.linear.z = 0
+        self.twist.angular.x = 0
+        self.twist.angular.y = 0
+        self.twist.angular.z = 0
+
+        # odometry
+        self.odom = Odometry()
+        self.sonars = []
+        self.outdict = {"s_proprio": np.zeros((self.dim_s_proprio, 1)),
+                "s_extero": np.zeros((self.dim_s_extero, 1))}
+                
+        self.subs["odom"]    = rospy.Subscriber("/robot0/odom", Odometry, self.cb_odom)
+        for i in range(3):
+            self.sonars.append(Range())
+            self.subs["sonar%d" % i]    = rospy.Subscriber("/robot0/sonar_%d" % i, Range, self.cb_range)
+        self.pubs["cmd_vel"] = rospy.Publisher("/robot0/cmd_vel", Twist, queue_size = 2)
+
+        # initialize / reset
+        from stdr_msgs.srv import MoveRobot
+        from geometry_msgs.msg import Pose2D
+        self.srv_replace = rospy.ServiceProxy("robot0/replace", MoveRobot)
+        default_pose = Pose2D()
+        default_pose.x = 2.0
+        default_pose.y = 2.0
+        ret = self.srv_replace(default_pose)
+        # print "ret", ret
+
+    def step(self, world, x):
+        if rospy.is_shutdown(): return
+        self.twist.linear.x = x[0,0]  # np.random.uniform(0, 1)
+        self.twist.angular.z = x[1,0] * 1.0 # np.random.uniform(-1, 1)
+        self.pubs["cmd_vel"].publish(self.twist)
+        # time.sleep(self.dt * 0.9)
+        self.rate.sleep()
+
+        
+        # self.outdict["s_proprio"][0,0] = x[1,0]
+        
+        # idx = self.get_sm_index("s_extero", "vel_lin", 1)
+        # self.outdict["s_extero"][idx] = x[0,0]
+        
+        # idx = self.get_sm_index("s_extero", "pos", 2)
+        # self.outdict["s_extero"][idx] = np.array([[self.odom.pose.pose.position.x], [self.odom.pose.pose.position.y]])
+        
+        # idx = self.get_sm_index("s_extero", "pos", 2)
+        # self.outdict["s_extero"][idx] = np.array([[self.odom.pose.pose.position.x], [self.odom.pose.pose.position.y]])
+
+        self.outdict["s_proprio"] = self.smdict["s_proprio"]
+        self.outdict["s_extero"] = self.smdict["s_extero"]
+        
+        return self.outdict
+        
+    def cb_odom(self, msg):
+        # print "%s.cb_odom" % (self.__class__.__name__), type(msg)
+        self.odom = msg
+        
+        self.smdict["s_proprio"][self.get_sm_index("s_proprio", "vel_ang", 1)] = self.odom.twist.twist.angular.z
+        self.smdict["s_extero"][self.get_sm_index("s_extero", "vel_lin", 1)] = self.odom.twist.twist.linear.x
+        self.smdict["s_extero"][self.get_sm_index("s_extero", "pos", 2)] = np.array([[self.odom.pose.pose.position.x], [self.odom.pose.pose.position.y]])
+        
+        euler_angles = np.array(euler_from_quaternion([
+            msg.pose.pose.orientation.x,
+            msg.pose.pose.orientation.y,
+            msg.pose.pose.orientation.z,
+            msg.pose.pose.orientation.w
+            ]))
+        
+        self.smdict["s_extero"][self.get_sm_index("s_extero", "theta", 1)] = euler_angles[2]
+        
+    def cb_range(self, msg):
+        # print "%s.cb_range" % (self.__class__.__name__), type(msg)
+        # print "id", msg.header.frame_id
+        sonar_idx = int(msg.header.frame_id.split("_")[-1])
+        # print sonar_idx
+        # self.get_sm_index("s_extero", "sonar", 1)
+        if np.isinf(msg.range ):
+            srange = 0
+        else:
+            srange = msg.range
+        self.smdict["s_extero"][self.get_sm_index_single("s_extero", "sonar", sonar_idx)] = srange
+        self.sonars[sonar_idx] = msg

@@ -124,7 +124,27 @@ class PlotTimeseries2D(Plot):
         columns = df.columns
         # print "columns", columns
 
+
+        # transform df to new df
+        if hasattr(self, "cols"):
+            cols = self.cols
+        else:
+            cols  = ["vel%d" % (i) for i in range(items[0].dim_s_motor)]
+            cols += ["acc_pred%d" % (i) for i in range(items[0].dim_s_motor)]
+        df2 = df[cols]
+
+        # print df
+        
+        # goal columns
+        if not hasattr(self, "cols_goal_base"):
+            setattr(self, "cols_goal_base", "vel_goal")
+
+        print "PlotTimeseries2D", self.cols, self.cols_goal_base
+                    
         pl.ioff() #
+
+        goal_col_1 = "%s%d" % (self.cols_goal_base, 0)
+        goal_col_2 = "%s%d" % (self.cols_goal_base, 1)
         
         if self.type == "pyplot":
             # pl.plot(df["vel0"], df["vel1"], "ko")
@@ -133,9 +153,11 @@ class PlotTimeseries2D(Plot):
             pl.title("state distribution and goal")
             # print df["vel_goal0"].values, df["vel_goal1"].values
             # pl.hist2d(df["vel0"].values, df["vel1"].values, bins=20)
-            pl.plot(df["vel_goal0"].values[0], df["vel_goal1"].values[0], "ro", markersize=16, alpha=0.5)
-            pl.hexbin(df["vel0"].values, df["vel1"].values, gridsize = 30, marginals=True)
-            pl.plot(df["vel0"].values, df["vel1"].values, "k-", alpha=0.25, linewidth=1)
+            
+            pl.plot(df["%s%d" % (self.cols_goal_base, 0)].values[0],
+                    df["%s%d" % (self.cols_goal_base, 1)].values[0], "ro", markersize=16, alpha=0.5)
+            pl.hexbin(df[self.cols[0]].values, df[self.cols[1]].values, gridsize = 30, marginals=True)
+            pl.plot(df[self.cols[0]].values, df[self.cols[1]].values, "k-", alpha=0.25, linewidth=1)
             # pl.xlim((-1.2, 1.2))
             # pl.ylim((-1.2, 1.2))
             pl.grid()
@@ -155,10 +177,12 @@ class PlotTimeseries2D(Plot):
             
             pl.show()
         elif self.type == "seaborn":
-            print "goal", df["vel_goal0"][0], df["vel_goal1"][0]
-            ax = sns.jointplot(x="vel0", y="vel1", data=df)
+            print "goal", df[goal_col_1][0], df[goal_col_2][0]
+            ax = sns.jointplot(x=self.cols[0], y=self.cols[1], data=df)
             print "ax", dir(ax)
-            ax.ax_joint.plot(df["vel_goal0"][0], df["vel_goal1"][0], "ro", alpha=0.5)
+            # plot goal
+            print "df[goal_col_1][0], df[goal_col_2][0]", self.cols_goal_base, goal_col_1, goal_col_2, df[goal_col_1][0], df[goal_col_2][0]
+            ax.ax_joint.plot(df[goal_col_1][0], df[goal_col_2][0], "ro", alpha=0.5)
             # pl.plot(df["vel_goal0"], df["vel_goal1"], "ro")
             pl.show()
 
@@ -189,6 +213,8 @@ class PlotTimeseriesND(Plot):
             cols += ["acc_pred%d" % (i) for i in range(items[0].dim_s_motor)]
         df2 = df[cols]
 
+        print df2
+        
         # goal columns
         if not hasattr(self, "cols_goal_base"):
             setattr(self, "cols_goal_base", "vel_goal")

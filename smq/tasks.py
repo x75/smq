@@ -125,7 +125,16 @@ class GoalTask2(Task2):
         # print self.intero_goal_idx_num, self.intero_error_idx_num
               
         # print "self.goal_dims", self.goal_dims
-        self.goal = np.random.uniform(-0.7, 0.7, (self.goal_dims_num, 1))
+        # replace that with interest_model.sample
+        if hasattr(self, "goaltype"):
+            if self.goaltype == "stdr_sonar":
+                self.goal = np.array([[1.0], [0.55], [0.45]])
+            elif self.goaltype == "stdr_pos":
+                self.goal = np.array([[1], [1]])
+            else:
+                self.goal = np.random.uniform(0.0, 1.0, (self.goal_dims_num, 1))
+        else:
+            self.goal = np.random.uniform(-0.7, 0.7, (self.goal_dims_num, 1))
         self.error = np.zeros_like(self.goal)
         
     def eval(self, x, i):
@@ -137,7 +146,7 @@ class GoalTask2(Task2):
         assert(goal_comparison.shape == self.goal.shape)
         self.error = goal_comparison - self.goal
         loss = np.sum(np.square(self.error))
-        
+
         x["s_intero"][self.intero_goal_idx_num] = self.goal # FIXME: hard-coded index?
         x["s_intero"][self.intero_error_idx_num] = self.error # FIXME: hard-coded index?
         x["s_reward"][i,0] = loss

@@ -9,6 +9,12 @@ import argparse
 # from robots import ...
 # available robots: pointmass, simple arm, two-wheeled differential, ...
 
+try:
+    import rospy
+except Exception, e:
+    print "import rospy failed", e
+
+
 from smq.utils  import get_items, get_items2
 from smq.worlds import RobotWorld2
 import smq.logging as log
@@ -58,7 +64,7 @@ def set_config_defaults(conf):
         # brains
         for brain in robot["brains"]:
             # brain items
-
+            print brain["class"]
             # kinesis brain
             if brain["class"].__name__ == "KinesisBrain": # FIXME
                 brain_items = {
@@ -67,6 +73,11 @@ def set_config_defaults(conf):
                     "binary_threshold": 0.005,
                     "binary_high_range": 1.5,
                     "binary_low_range": 0.01
+                    }
+            # taxis brain
+            elif brain["class"].__name__.startswith("TaxisBrain"): # FIXME
+                brain_items = {
+                    "gain": 1.0
                     }
             else:
                 brain_items = {}
@@ -102,6 +113,11 @@ def set_config_defaults2(conf):
                 "binary_high_range": 1.5,
                 "binary_low_range": 0.01
                 }
+        # taxis brain
+        elif brain["class"].__name__.startswith("TaxisBrain"): # FIXME
+            brain_items = {
+                "gain": 1.0
+            }
         else:
             brain_items = {}
 
@@ -241,7 +257,12 @@ class Experiment2(object):
 
         # initialize global logging
         log.init_log3(self.conf)
-        
+
+        # ROS
+        if not self.conf.has_key("ros"): self.conf["ros"] = False
+        if self.conf["ros"]:
+            rospy.init_node(self.conf["id"])
+                
         # initialize parts from config
         self.prepare()
 
@@ -282,8 +303,14 @@ class Experiment2(object):
         time scales, agents, parameters, ..."""
         
         for i in xrange(self.numsteps):
+            # mark
             print "# % 10d " % (i) + "#" * 80
-            # 1. do world
+            # handle ROS
+            if self.conf["ros"]:
+                if rospy.is_shutdown():
+                    break
+                
+            # do world
             self.worlds[0].step()
 
             # TODO: realtime mode: delay next iteration for realtime plotting and visualization
