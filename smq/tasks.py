@@ -183,7 +183,7 @@ class GoalTaskTaxis2(Task2):
         
     def synthesize_goal(self):
         # FIXME: general dimension, goal choice, interest model ...
-        # goal itself must be structured
+        # FIXME: goal itself must be structured like smdict
         self.goal = np.random.uniform(-0.7, 0.7, (self.goal_dims_num, 1))
         # print self.goal_dims
         
