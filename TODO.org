@@ -1,28 +1,30 @@
 #+TITLE: smq todo foo
 
+#+LATEX_HEADER: \usepackage{fullpage}
+#+LATEX_HEADER: \renewcommand{\familydefault}{\sfdefault}
 #+OPTIONS: toc:nil
 
 * Items
-** TODO add robots
- - x check pointmass kinematic vs. dynamic control: doesn't evenmake
-   sense for kinematic control?
- - arm
- - stdr
- - sphero
- - cartpole
-
 ** TODO add brains
- - x kinesis
- - x taxis
- - learning from kinesis / kinesis as explorer
+ - interest models, learning from kinesis / kinesis as explorer
  - im, imol, actinf, eh, iso, ...
  - hyperopt'ing
+ - x taxis
+ - x kinesis
+
+** TODO add robots
+ - sphero
+ - cartpole
+ - x stdr
+ - x arm
+ - x check pointmass kinematic vs. dynamic control: doesn't evenmake
+   sense for kinematic control?
 
 ** TODO add worlds
 *** TODO pointmass world
-  - x increase dimensions 3, 10
   - add force fields
   - add structure and obstacles
+  - x increase dimensions 3, 10
 
 ** TODO sm space
  - dimensions again: need to be able to access sm variables by name
@@ -51,15 +53,13 @@
    that can also be saved to print format
 
 ** TODO failsafe
-
-make failsafe checks for configuration consistency
+ - make failsafe checks for configuration consistency
 
 ** TODO integration / robots lib
-
-use explauto or not?
-
-ideally, i would like to have a library of systems which can be equipped
-with wrappers for: explauto, ROS, ... probably using decorators
+ - ideally, i would like to have a library of systems which can be
+   equipped with wrappers for: explauto, ROS, ... probably using
+   decorators
+ - x use explauto or not? _no_
 
 ** TODO experiment specification
 
@@ -79,8 +79,8 @@ IDEA: use a generic type "loop" which has a "step" method and a
 "stack" member, stacks being ordered dicts/lists of "loops"
 
 ** TODO high-level design qu's
-
-how to separate world, robot, task appropriately
+ - x how to separate world, robot, task appropriately: current state
+   (v2) seems ok
 
 ** TODO logging
  - how logging and ros publishing is the same or not: ROS also
@@ -90,9 +90,15 @@ how to separate world, robot, task appropriately
  - x column names for tables
 
 ** TODO tasks
+the actually interesting bit
+ - artificial organism with brain equation: bacterial random search,
+   directional field, internal simulation, TSPwAC
+ - motor babbling
+ - goal babbling
+ - ...
 ** TODO efus
  - ultrastability
- - explorer (kinesis)
+ - explorer (kinesis, interest models)
  - learner
 
 ** TODO dynamic challenges
@@ -106,8 +112,7 @@ how to separate world, robot, task appropriately
  -  include deep learning foo
 
 ** TODO testing
-
-do unit testing
+ - do unit testing
 
 ** TODO submodules
 

@@ -13,10 +13,10 @@ Brain: kinesis
 import time
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
-from smq.robots import SimpleRandomRobot, PointmassRobot, PointmassRobot2, SimpleArmRobot
+from smq.robots import PointmassRobot2, SimpleArmRobot
 from smq.plot   import PlotTimeseries2, PlotTimeseriesND
 from smq.tasks  import NullTask, SetpointTask, GoalTask, GoalTask2
-from smq.brains import NullBrain, KinesisBrain, KinesisBrain2
+from smq.brains import KinesisBrain2
 
 import numpy as np
 

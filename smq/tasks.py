@@ -3,6 +3,8 @@ import numpy as np
 
 from smq.utils import set_attr_from_dict
 
+################################################################################
+# v1 style
 class Task(object):
     """Base task, always minimum"""
     def __init__(self, conf):
@@ -80,7 +82,7 @@ class GoalTaskTaxis(Task):
         return x
 
 ################################################################################
-# 
+# v2 style
 class Task2(object):
     """Base task, always minimum"""
     def __init__(self, conf):

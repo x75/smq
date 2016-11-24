@@ -2,6 +2,7 @@
 
 import time
 import numpy as np
+from collections import OrderedDict
 
 def get_items(items_conf):
     """generic function creating a list of objects from a config specification
@@ -32,7 +33,43 @@ def set_attr_from_dict(obj, dictionary):
     """set attributes of an object with names from the dictionary's keys and their values from the dictionary's values"""
     for k,v in dictionary.items():
         setattr(obj, k, v)
+
+def set_attr_from_dict_ifs(ref, ifs_conf):
+    """set the attributes in the ref'erenced from the interfaces configurations ifs_conf"""
+    # could also just use the ref.attr notation?
+    setattr(ref, "dim", 0)
+    setattr(ref, "dimnames", [])
+    setattr(ref, "smdict", OrderedDict())
+    setattr(ref, "smdict_index", OrderedDict())
+    setattr(ref, "ifs", [])
+    
+    # ref.smstruct = ["dim_s_proprio", "dim_s_extero", "dim_s_intero", "dim_s_reward", "dim_s_pred", "dim_s_motor"]
         
+    # interface
+    for k in ifs_conf.keys():
+        # print "k", k
+        ref.ifs.append(k)
+        # smdict key
+        k_   = k.replace("dim_", "")
+        # dim of that part is length of fields array
+        dim_ = len(ifs_conf[k])
+        # set the class attribute
+        setattr(ref, k, dim_)
+        # count overall dims
+        ref.dim += dim_
+        # collect all variable names
+        ref.smdict_index[k_] = {}
+        for i, dimname in enumerate(ifs_conf[k]):
+            # this is local index for given dim group
+            ref.smdict_index[k_][dimname] = i
+            # this is globally associated with ref.sm
+            ref.dimnames.append(dimname)
+
+        # now that we know the dimensions of each part of sm space, initialize the vectors
+        ref.smdict[k_] = np.zeros((dim_, 1))
+            
+    print "%s ref(%s).smdict = %s" % ("set_attr_from_dict_ifs", ref.__class__.__name__, ref.smdict)
+
 
 def make_column_names_numbered(base = "base", times = 1):
     """create an array of numbered instances of a base string"""

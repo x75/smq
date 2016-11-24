@@ -8,7 +8,7 @@ import numpy as np
 
 import smq.logging as log
 
-from robots import Robot, Robot2
+from robots import Robot2
 from brains import Brain2
 
 class World(object):
