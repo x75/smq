@@ -13,8 +13,12 @@ from smq.utils import get_items, set_attr_from_dict, ct_pol2car, ct_car2pol, set
 from smq.motivation import default_conf_motivations
 
 ################################################################################
-# v2 style
+# Brain's are things that can be fed with numbers (data) and which respond with
+# predictions about future values of sensorimotor space. Those predictions corresponding
+# to motor lines will then be interpreted by the motor units as "commands"
+# v2 style is a the current rewrite
 class Brain2(object):
+    """Brain2 basic Brain"""
     def __init__(self, conf, ifs_conf):
         self.conf = conf
         # self.dim_s_motor = self.conf["dim_s_motor"]
