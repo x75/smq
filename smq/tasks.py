@@ -23,27 +23,34 @@ class Task2(SMQModule):
         self.prepare(ref)
 
         # compute submodule members
-        self.goal       = conf["goal"](self.conf)
-        self.error      = conf["error"](self.conf)
-        self.measure    = conf["measure"](self.conf)
-        self.motivation = conf["motivation"](self.conf)
+        for item in ["goald", "error", "measure", "motivation"]:
+            if not type(conf[item]) is dict:
+                conf[item] = {"class": conf[item]}
+            setattr(self, item, conf[item]["class"](self.conf))
+        # self.goald       = conf["goal"](self.conf)
+        # self.error      = conf["error"](self.conf)
+        # self.measure    = conf["measure"](self.conf)
+        # self.motivation = conf["motivation"](self.conf)
 
     def eval(self, x, i):
         """evaluate task over x, x being an smdict at time t, requires local memory"""
         # collect variables that we want to compare to the goal
         goal_comparison = np.vstack([x[k][self.goal_dims[k]] for k in self.goal_dims.keys()])
-        
-        # make sure there are compatible
-        assert(goal_comparison.shape == self.goal.goal.shape)
 
+        # make sure there are compatible
+        assert(goal_comparison.shape == self.goald.goal.shape)
+
+        # update goal
+        x = self.goald.step(x)
+        
         # compute the error
-        self.error.step(goal_comparison, self.goal.goal)
+        self.error.step(goal_comparison, self.goald.goal)
 
         # compute the distance
         self.measure.step(self.error.error)
 
         # assign new values intero variables
-        x["s_intero"][self.intero_goal_idx_num] = self.goal.goal # FIXME: hard-coded index?
+        x["s_intero"][self.intero_goal_idx_num] = self.goald.goal # FIXME: hard-coded index?
         x["s_intero"][self.intero_error_idx_num] = self.error.error # FIXME: hard-coded index?
         x["s_reward"][i,0] = self.measure.measure
 

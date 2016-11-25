@@ -105,7 +105,7 @@ conf = {
                     # "intero_goal_idx":  make_column_names_numbered("sonar_goal", 3),   # map goal components to items in s_intero
                     # "intero_error_idx": make_column_names_numbered("sonar_error", 3),  # map goal components to items in s_intero
                     # "loss": "mse",
-                    "goal": PosGoal,
+                    "goald": PosGoal,
                     "error": DifferenceError,
                     "measure": MSEMeasure,
                     "motivation": UniformRandomMotivation,

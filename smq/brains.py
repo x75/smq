@@ -51,13 +51,8 @@ class Brain2(IFSMQModule):
         # print "%s.get_logdata, logdata.shape = %s, self.dim = %d" % (self.__class__.__name__, logdata.shape, self.dim)
         # logdata = np.atleast_2d(np.hstack((self.x, self.y))).T
         return logdata
-    
-    def step(self, x):
-        """ingest new sensory measurements into state"""
-        # # old numpy array style
-        # assert(type(x) == np.ndarray)
-        # assert(x.shape == (self.dim_s_proprio + self.dim_s_extero, 1))
 
+    def step_check_input(self, x):
         # new smdict style
         assert(type(x) == dict)
         assert(x["s_proprio"].shape == (self.dim_s_proprio, 1))
@@ -75,6 +70,15 @@ class Brain2(IFSMQModule):
             self.smdict["s_proprio"] = x["s_proprio"].copy() # HACK?
             self.smdict["s_extero"]  = x["s_extero"].copy() # HACK?
 
+    # FIXME: use decorators for this checking stuff
+    def step(self, x):
+        """ingest new sensory measurements into state"""
+        # # old numpy array style
+        # assert(type(x) == np.ndarray)
+        # assert(x.shape == (self.dim_s_proprio + self.dim_s_extero, 1))
+
+        self.step_check_input(x)
+
         for i,task in enumerate(self.tasks):
             # self.smdict["s_reward"][i,0] = task.eval(self.smdict)
             # HACK
@@ -82,9 +86,9 @@ class Brain2(IFSMQModule):
             self.smdict = task.eval(self.smdict, i)
         
         prediction = self.predict_proprio()
-        print "prediction", prediction.shape
+        # print "prediction", prediction.shape
         assert(prediction.shape == (self.dim_s_motor, 1))
-        self.smdict["s_motor"] = prediction
+        # self.smdict["s_motor"] = prediction
         return prediction
 
     # predict proprioceptive state             
@@ -95,49 +99,70 @@ class Brain2(IFSMQModule):
 
         task should already provide a prediction for itself,
         brain combines potentially multiple predictions"""
-        # return self.x[:-self.dim_s_motor]
-        # print "self.smdict[\"s_pred\"]", self.smdict
-        # self.smdict["s_pred"] = np.zeros((1, self.dim_s_motor))
-        return np.zeros((self.dim_s_motor, 1))
+        
+        for i, task in enumerate(self.tasks):
+            self.smdict = task.motivation.step(self.smdict, i)
+        return self.smdict["s_pred"]
 
 class NullBrain2(Brain2):
     """Plain Brain already is NullBrain: always predicts zeros"""
     def __init__(self, conf, ifs_conf):
         Brain2.__init__(self, conf, ifs_conf)
 
+# FIXME these also have collapsed into one Brain, remove
 class KinesisBrain2(Brain2):
     """Realize simple non-plastic kinesis"""
     def __init__(self, conf, ifs_conf):
         Brain2.__init__(self, conf, ifs_conf)
 
-    def predict_proprio(self):
-        """By definition proprio space is identical to motor space?"""
-        # checking for the value of a reward is this brain's way of responding to the environment
+    # def predict_proprio(self):
+    #     """By definition proprio space is identical to motor space?"""
+    #     # checking for the value of a reward is this brain's way of responding to the environment
               
-        for i, task in enumerate(self.tasks):
-            self.smdict = task.motivation.step(self.smdict, i)
+    #     for i, task in enumerate(self.tasks):
+    #         self.smdict = task.motivation.step(self.smdict, i)
             
-        # FIXME: currently last task wins. reset s_pred to zero, accumulate
-        # predictions respecting previously computed values
-        return self.smdict["s_pred"]
+    #     # FIXME: currently last task wins. reset s_pred to zero, accumulate
+    #     # predictions respecting previously computed values
+    #     return self.smdict["s_pred"]
 
 class TaxisBrain2(Brain2):
     def __init__(self, conf, ifs_conf):
         Brain2.__init__(self, conf, ifs_conf)
 
-    def predict_proprio(self):
-        for i, task in enumerate(self.tasks):
-            self.smdict = task.motivation.step(self.smdict, i)
+    # def predict_proprio(self):
+    #     for i, task in enumerate(self.tasks):
+    #         self.smdict = task.motivation.step(self.smdict, i)
 
-            # print "%s.predict_proprio: error_pol = %s, pred = %s" % (self.__class__.__name__, error_pol, pred)
+    #         # print "%s.predict_proprio: error_pol = %s, pred = %s" % (self.__class__.__name__, error_pol, pred)
         
-            # # FIXME: control indexing shape
-            # pred_idx = self.robot.get_sm_index("s_pred", "acc_pred")
-            # # pred_idx = map(list, zip(*pred_idx))        
-            # print "%s.predict_proprio: pred_idx = %s" % (self.__class__.__name__, pred_idx)
-            # self.smdict["s_pred"][pred_idx] = pred
-            # return self.smdict["s_pred"].T
+    #         # # FIXME: control indexing shape
+    #         # pred_idx = self.robot.get_sm_index("s_pred", "acc_pred")
+    #         # # pred_idx = map(list, zip(*pred_idx))        
+    #         # print "%s.predict_proprio: pred_idx = %s" % (self.__class__.__name__, pred_idx)
+    #         # self.smdict["s_pred"][pred_idx] = pred
+    #         # return self.smdict["s_pred"].T
         
-        # self.smdict["s_pred"] = pred
-        # make sure shape is (1, dim)
-        return self.smdict["s_pred"]
+    #     # self.smdict["s_pred"] = pred
+    #     # make sure shape is (1, dim)
+    #     return self.smdict["s_pred"]
+
+class E2PBrain2(Brain2):
+    def __init__(self, conf, ifs_conf):
+        Brain2.__init__(self, conf, ifs_conf)
+
+        self.e2p = 
+                
+    def step(self, x):
+        """ingest new sensory measurements into state"""
+        self.step_check_input(x)
+
+        self.e2p.step(self.smdict["s_extero"], self.smdict["s_intero"])
+        self.smdict["s_intero"]["j_ang_"] = self.e2p(self.smdict["s_extero"])
+        
+        for i,task in enumerate(self.tasks):
+            self.smdict = task.eval(self.smdict, i)
+        
+        prediction = self.predict_proprio()
+        assert(prediction.shape == (self.dim_s_motor, 1))
+        return prediction

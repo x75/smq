@@ -88,7 +88,7 @@ conf = {
             "class": KinesisBrain2,
             "name": make_robot_name(expr_id, "kinesisbrain", 0),
             "dim_s_motor": motors,
-            "variant": "continuous_linear", # "binary_threshold"
+            "variant": "binary_threshold", # "continuous_linear"
             "continuous_gain": 0.7,
             "binary_threshold": 0.05,
             "binary_high_range": 0.5, # np.pi/2.0,
@@ -102,7 +102,7 @@ conf = {
                     "goal_dims_dict":   {"s_proprio": make_column_names_numbered("j_ang", motors)}, # map goal components to items in sm interface
                     "intero_goal_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
                     "intero_error_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
-                    "goal": JointGoal,
+                    "goald": JointGoal,
                     "error": DifferenceError,
                     "measure": MSEMeasure,
                     "motivation": UniformRandomMotivation,

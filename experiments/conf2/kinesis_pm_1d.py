@@ -20,7 +20,7 @@ from smq.brains import KinesisBrain2
 
 # task
 from smq.tasks        import GoalTask2
-from smq.goals        import JointGoal
+from smq.goals        import JointGoal, PosGoal
 from smq.errors       import DifferenceError
 from smq.measures     import MSEMeasure
 from smq.motivations  import UniformRandomMotivation
@@ -94,7 +94,7 @@ conf = {
                     "goal_dims_dict":   {"s_extero": make_column_names_numbered("vel", motors)}, # map goal components to items in sm interface
                     "intero_goal_idx":  make_column_names_numbered("vel_goal", motors),   # map goal components to items in s_intero
                     "intero_error_idx": make_column_names_numbered("vel_error", motors),  # map goal components to items in s_intero
-                    "goal": JointGoal,
+                    "goald": PosGoal,
                     "error": DifferenceError,
                     "measure": MSEMeasure,
                     "motivation": UniformRandomMotivation,

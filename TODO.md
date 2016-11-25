@@ -3,6 +3,43 @@
 # Items
 
 
+## tasks
+
+the actually interesting bit, grow package by stepping through the tasks
+
+-   x jumping goal: x by counting, x by average error
+-   learn an e2p model, e.g. taxis with distinct goal- and
+    proprio-spaces
+    -   clean up actinf/hebbsom and gmm's, ready to load with fit and
+        predict
+    -   integrate these
+-   actinf, imol, im proprio?
+-   use kinesis as explorer and learn a model
+-   artificial organism with brain equation: bacterial random search,
+    directional field, internal simulation, TSPwAC, reservoir fillup/consumption
+-   motor babbling
+-   goal babbling
+
+
+## high-level design qu's
+
+-   default configuration generator, also use it to repair/update old configs
+-   revert to blocks paradigm, all blocks of same basic type
+    -   globally share config among all blocks
+    -   use one shared type "Block", init from config all the same
+    -   use one shared smdict to globally ferry information
+    -   every block lists the subscriptions and publishers it wants/creates
+    -   the config dict is mapped onto comp graph without structural change
+        (smpblocks)?
+    -   hierarchical: "goal" is just another prediction in the motor
+        command sense, such as proprio layer makes a prediction at proprio
+        level, the lowest one, next level makes a prediction at one level
+        up which becomes the goal for proprio, etc
+-   test multiple robots, tasks, &#x2026;
+-   x how to separate world, robot, task appropriately: current state
+    (v2) seems ok
+
+
 ## add brains
 
 -   interest models, learning from kinesis / kinesis as explorer
@@ -14,21 +51,20 @@
 
 ## add robots
 
+-   logfile reading robot
 -   sphero
 -   cartpole
 -   x stdr
 -   x arm
--   x check pointmass kinematic vs. dynamic control: doesn't evenmake
+-   x check pointmass kinematic vs. dynamic control: doesn't even make
     sense for kinematic control?
 
 
 ## add worlds
 
-
-### pointmass world
-
--   add force fields
--   add structure and obstacles
+-   add force fields (pm, sa)
+-   add structure and obstacles (pm, sa)
+-   add exteroception (pm)
 -   x increase dimensions 3, 10
 
 
@@ -80,27 +116,26 @@ what is system, what is robot, what are dimensions, do proper spec of
 
 ## experiment specification
 
-experiments.py
+-   how to define experiment structure in conf that can capture different example scenarios like:
+    -   single episode learning
+    -   multi episode learning (value func prop)
+    -   multi episode optimization (hpo, cma, evo, &#x2026;)
+    -   infinite episode, &#x2026;
+    -   single episode, single model, single task
+    -   single run multiple models single task
+    -   optimization run single model single task
+-   IDEA: use a generic type "loop" which has a "step" method and a "stack" member, stacks being ordered dicts/lists of "loops"
 
-how to define experiment structure in conf that can capture different
-example scenarios like:
-
--   single episode learning
--   multi episode learning (value func prop)
--   multi episode optimization (hpo, cma, evo, &#x2026;)
--   infinite episode, &#x2026;
--   single episode, single model, single task
--   single run multiple models single task
--   optimization run single model single task
-
-IDEA: use a generic type "loop" which has a "step" method and a
-"stack" member, stacks being ordered dicts/lists of "loops"
-
-
-## high-level design qu's
-
--   x how to separate world, robot, task appropriately: current state
-    (v2) seems ok
+-   hierarchy
+    -   0th order innate hardwared controller (Darwinian) changes motor output according to rule
+    -   1st order learning model (Skinnerian) changes controller parameters in order to
+        change the change in motor output
+    -   2nd order learning wraps around that again and changes the 1st
+        order learners parameter to better change the 0th order parameters
+        to change the motor output
+    -   it should be possible to apply the same learning principles on all
+        those levels (kinesis, taxis, online model learner with
+        exploration, actinf, evo, hyperopt)?
 
 
 ## logging
@@ -110,17 +145,6 @@ IDEA: use a generic type "loop" which has a "step" method and a
 -   logging/publishing decorators
 -   profiling log function, compare log2 (direct hdf5) + log3 (via pandas)
 -   x column names for tables
-
-
-## tasks
-
-the actually interesting bit
-
--   artificial organism with brain equation: bacterial random search,
-    directional field, internal simulation, TSPwAC
--   motor babbling
--   goal babbling
--   &#x2026;
 
 
 ## efus
@@ -135,6 +159,7 @@ the actually interesting bit
 -   dynamic creation of new variables
 -   dynamic length of run
 -   dynamic structural changes
+-   make block types which get their step function body from the configuration
 
 
 ## neural networks

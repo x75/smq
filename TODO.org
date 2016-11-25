@@ -5,7 +5,25 @@
 #+OPTIONS: toc:nil
 
 * Items
+** TODO tasks
+the actually interesting bit, grow package by stepping through the tasks
+
+ - x jumping goal: x by counting, x by average error
+ - learn an e2p model, e.g. taxis with distinct goal- and
+   proprio-spaces
+   - clean up actinf/hebbsom and gmm's, ready to load with fit and
+     predict
+   - integrate these
+ - actinf, imol, im proprio?
+ - use kinesis as explorer and learn a model
+ - artificial organism with brain equation: bacterial random search,
+   directional field, internal simulation, TSPwAC, reservoir fillup/consumption
+ - motor babbling
+ - goal babbling
+
+
 ** TODO high-level design qu's
+ - default configuration generator, also use it to repair/update old configs
  - revert to blocks paradigm, all blocks of same basic type
    - globally share config among all blocks
    - use one shared type "Block", init from config all the same
@@ -20,6 +38,7 @@
  - test multiple robots, tasks, ...
  - x how to separate world, robot, task appropriately: current state
    (v2) seems ok
+
 ** TODO add brains
  - interest models, learning from kinesis / kinesis as explorer
  - im, imol, actinf, eh, iso, ...
@@ -33,14 +52,15 @@
  - cartpole
  - x stdr
  - x arm
- - x check pointmass kinematic vs. dynamic control: doesn't evenmake
+ - x check pointmass kinematic vs. dynamic control: doesn't even make
    sense for kinematic control?
 
 ** TODO add worlds
-*** TODO pointmass world
-  - add force fields
-  - add structure and obstacles
-  - x increase dimensions 3, 10
+ - add force fields (pm, sa)
+ - add structure and obstacles (pm, sa)
+ - add exteroception (pm)
+ - x increase dimensions 3, 10
+
 ** TODO sm space
  - dimensions again: need to be able to access sm variables by name
    from anywhere (!!!)
@@ -87,20 +107,23 @@
    - optimization run single model single task
  - IDEA: use a generic type "loop" which has a "step" method and a "stack" member, stacks being ordered dicts/lists of "loops"
 
+ - hierarchy
+  - 0th order innate hardwared controller (Darwinian) changes motor output according to rule
+  - 1st order learning model (Skinnerian) changes controller parameters in order to
+    change the change in motor output
+  - 2nd order learning wraps around that again and changes the 1st
+    order learners parameter to better change the 0th order parameters
+    to change the motor output
+  - it should be possible to apply the same learning principles on all
+    those levels (kinesis, taxis, online model learner with
+    exploration, actinf, evo, hyperopt)?
+
 ** TODO logging
  - how logging and ros publishing is the same or not: ROS also
    involves inputs whereas logging is only one-way
  - logging/publishing decorators
  - profiling log function, compare log2 (direct hdf5) + log3 (via pandas)
  - x column names for tables
-
-** TODO tasks
-the actually interesting bit
- - artificial organism with brain equation: bacterial random search,
-   directional field, internal simulation, TSPwAC
- - motor babbling
- - goal babbling
- - ...
 ** TODO efus
  - ultrastability
  - explorer (kinesis, interest models)
@@ -108,9 +131,10 @@ the actually interesting bit
 
 ** TODO dynamic challenges
 
- -  dynamic creation of new variables
- -  dynamic length of run
- -  dynamic structural changes
+ - dynamic creation of new variables
+ - dynamic length of run
+ - dynamic structural changes
+ - make block types which get their step function body from the configuration
 
 ** TODO neural networks
  -  include tricks of the trade foo: input cleaning, square augmented ...

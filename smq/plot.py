@@ -10,6 +10,16 @@ import smq.logging as log
 
 from smq.utils import set_attr_from_dict
 
+def get_data_from_item_log(items):
+    tbl_key = items[0].name
+    # print "%s.run: tbl_key = %s" % (self.__class__.__name__, tbl_key)
+    print "plot.get_data_from_item_log: tbl_key = %s" % (tbl_key)
+    df = log.log_lognodes[tbl_key]
+    data = df.values.T
+    columns = df.columns
+    return tbl_key, df, data, columns
+
+
 class Plot(object):
     def __init__(self, conf):
         self.conf = conf
@@ -73,7 +83,7 @@ class PlotTimeseries(Plot):
         ax.legend(["%s" % (columns)])
         # pl.hist(data.T, bins=20, orientation="horizontal")
         return ax
-    
+        
     # def make_plot(self, items):
     #     # print "log.h5file", log.h5file
     #     # print "dir(log.h5file)", dir(log.h5file)
@@ -187,16 +197,8 @@ class PlotTimeseries2D(Plot):
             pl.show()
 
 
-def get_data_from_item_log(items):
-    tbl_key = items[0].name
-    # print "%s.run: tbl_key = %s" % (self.__class__.__name__, tbl_key)
-    print "plot.get_data_from_item_log: tbl_key = %s" % (tbl_key)
-    df = log.log_lognodes[tbl_key]
-    data = df.values.T
-    columns = df.columns
-    return tbl_key, df, data, columns
-            
 class PlotTimeseriesND(Plot):
+    """Plot a hexbin scattermatrix for N-dim data"""
     def __init__(self, conf):
         Plot.__init__(self, conf)
 
@@ -333,3 +335,89 @@ class PlotTimeseries2(Plot):
         ax.legend(["%s" % (columns)])
         # pl.hist(data.T, bins=20, orientation="horizontal")
         return ax
+
+class PlotTimeseriesNDrealtimeseries(Plot):
+    """Plot a hexbin scattermatrix for N-dim data"""
+    def __init__(self, conf):
+        Plot.__init__(self, conf)
+
+    def run(self, items):
+        pl.ioff()
+
+        tbl_key, df, data, columns = get_data_from_item_log(items)
+        
+        # transform df to new df
+        if hasattr(self, "cols"):
+            cols = self.cols
+        else:
+            cols  = ["vel%d" % (i) for i in range(items[0].dim_s_motor)]
+            cols += ["acc_pred%d" % (i) for i in range(items[0].dim_s_motor)]
+        df2 = df[cols]
+
+        print df2
+        
+        # goal columns
+        if not hasattr(self, "cols_goal_base"):
+            setattr(self, "cols_goal_base", "vel_goal")
+    
+        pl.ioff()
+        # create figure
+        fig = pl.figure()
+        fig.suptitle("Experiment %s, module %s" % (self.title, tbl_key))
+
+        x1 = df[cols].values
+        x2 = df[self.cols_goals].values
+        # print "x1.shape", x1.shape
+        x1plot = x1 + np.arange(x1.shape[1])
+        x2plot = x2 + np.arange(x2.shape[1])
+        print "x1plot.shape", x1plot.shape
+        pl.plot(x1plot)
+        pl.plot(x2plot)
+        pl.show()
+        
+    #     for i in range(data.shape[0]): # loop over data items
+    #         ax1 = pl.subplot2grid((data.shape[0], 2), (i, 0))
+    #         ax1 = self.make_plot_timeseries(ax1, data[i], columns[i])
+            
+    #         ax2 = pl.subplot2grid((data.shape[0], 2), (i, 1)) # second plotgrid column
+    #         ax2 = self.make_plot_histogram(ax2, data[i], columns[i])
+
+    #     # global for plot, use last axis
+    #     ax1.set_xlabel("t [steps]")
+    #     ax2.set_xlabel("counts")
+        
+    #     # fig.show() # this doesn't work
+    #     pl.show()
+
+    # def make_plot_timeseries(self, ax, data, columns):
+    #     ax.plot(data, "k-", alpha=0.5)
+    #     # print "columns[i]", type(columns[i])
+    #     ax.legend(["%s" % (columns)])
+    #     return ax
+
+    # def make_plot_histogram(self, ax, data, columns):
+    #     ax.hist(data, bins=20, orientation="horizontal")
+    #     ax.legend(["%s" % (columns)])
+    #     # pl.hist(data.T, bins=20, orientation="horizontal")
+    #     return ax
+
+
+            
+        # g = sns.PairGrid(df2)
+        # g.map_diag(pl.hist)
+        # g.map_offdiag(pl.hexbin, cmap="gray", gridsize=30, bins="log");
+
+        # # print "dir(g)", dir(g)
+        # # print g.diag_axes
+        # # print g.axes
+        # for i in range(items[0].dim_s_motor):
+        #     for j in range(items[0].dim_s_motor): # 1, 2; 0, 2; 0, 1
+        #         if i == j:
+        #             continue
+        #         # column gives x axis, row gives y axis, thus need to reverse the selection for plotting goal
+        #         g.axes[i,j].plot(df["%s%d" % (self.cols_goal_base, j)], df["%s%d" % (self.cols_goal_base, i)], "ro", alpha=0.5)
+                
+        # pl.show()
+
+        # pl.hist(df["dist_goal0"].values, bins=20)
+        # pl.show()

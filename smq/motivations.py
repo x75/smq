@@ -22,7 +22,7 @@ class Motivation(SMQModule):
         # - goal (current goal)
         # - certainty / confidence
 
-        self.goal = np.zeros((self.goal_dims_num, 1))
+        # self.goal = np.zeros((self.goal_dims_num, 1))
         self.suggestion = np.zeros((self.brain.dim_s_motor, 1))
         # print "%s.__init__: dir(self) = %s" % (self.__class__.__name__,  dir(self))
 
@@ -30,13 +30,13 @@ class Motivation(SMQModule):
         smdict["s_pred"] = self.suggestion
         return smdict
         
-    def sample(self):
-        """sample from the motivation: yield an exploratory move"""
-        return self.goal
+    # def sample(self):
+    #     """sample from the motivation: yield an exploratory move"""
+    #     return self.goal
 
-    def fit(self, x):
-        """fit the motivation module to a data item"""
-        return
+    # def fit(self, x):
+    #     """fit the motivation module to a data item"""
+    #     return
 
 class UniformRandomMotivation(Motivation):
     def __init__(self, conf):
@@ -60,7 +60,6 @@ class UniformRandomMotivation(Motivation):
         # smdict["s_pred"] = np.random.uniform(-self.brain.binary_high_range, self.brain.binary_high_range, (self.brain.dim_s_motor, 1))
         return smdict
 
-
 class AngularPursuitMotivation(Motivation):
     def __init__(self, conf):
         Motivation.__init__(self, conf)
@@ -73,7 +72,7 @@ class AngularPursuitMotivation(Motivation):
         error_cart = smdict["s_intero"][self.intero_error_idx_num]
 
         # add noise to error
-        error_cart += np.random.normal(0, error_cart_level, (self.brain.dim_s_motor, 1))
+        error_cart += np.random.normal(0, error_cart_level, error_cart.shape)
 
         # prediction based on cartesian error, accounting for both angular
         # and absolute value error components
@@ -92,7 +91,7 @@ class AngularPursuitMotivation(Motivation):
             arrarg  = error_pol[1:].reshape(error_cart.shape[0]-1, )
             
             # transform back to cartesian
-            pred = -ct_pol2car(gain, arrarg).reshape((self.brain.dim_s_motor, 1))
+            pred = -ct_pol2car(gain, arrarg).reshape(error_cart.shape)
         else:
             pred = -np.sign(error_cart) * gain
 
