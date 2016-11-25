@@ -5,6 +5,13 @@
 #+OPTIONS: toc:nil
 
 * Items
+
+** TODO high-level design qu's
+ - revert to blocks paradigm, all blocks of same basic type
+ - globally share config among all blocks
+ - test multiple robots, tasks, ...
+ - x how to separate world, robot, task appropriately: current state
+   (v2) seems ok
 ** TODO add brains
  - interest models, learning from kinesis / kinesis as explorer
  - im, imol, actinf, eh, iso, ...
@@ -25,7 +32,6 @@
   - add force fields
   - add structure and obstacles
   - x increase dimensions 3, 10
-
 ** TODO sm space
  - dimensions again: need to be able to access sm variables by name
    from anywhere (!!!)
@@ -77,10 +83,6 @@ example scenarios like:
 
 IDEA: use a generic type "loop" which has a "step" method and a
 "stack" member, stacks being ordered dicts/lists of "loops"
-
-** TODO high-level design qu's
- - x how to separate world, robot, task appropriately: current state
-   (v2) seems ok
 
 ** TODO logging
  - how logging and ros publishing is the same or not: ROS also

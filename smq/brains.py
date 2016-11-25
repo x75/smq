@@ -8,7 +8,7 @@ import numpy as np
 
 from collections import OrderedDict
 
-from smq.utils import get_items, set_attr_from_dict, ct_pol2car, ct_car2pol, set_attr_from_dict_ifs
+from smq.utils import get_items, get_items2, set_attr_from_dict, ct_pol2car, ct_car2pol, set_attr_from_dict_ifs
 
 from smq.motivation import default_conf_motivations
 
@@ -38,7 +38,11 @@ class Brain2(object):
         # configure motivation
         if not conf.has_key("motivations"):
             conf["motivations"] = default_conf_motivations
-        self.motivations = get_items(conf["motivations"])
+            conf["goaldim"] = conf["tasks"][0]["goal_dims_num"]
+        # copy interfaces config
+        conf["ifs"] = [ifs_conf]
+        self.motivations = get_items2(conf, "motivations")
+        print "self.motivations", self.motivations
         
         # assert one reward for each task?
         assert(len(self.tasks) == self.dim_s_reward)
