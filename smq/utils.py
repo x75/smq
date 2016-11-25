@@ -29,6 +29,19 @@ def get_items2(conf, item = None):
     # return list
     return items
 
+def get_items_with_ref(conf, ref = None):
+    """generic function creating a list of objects from a config specification
+    objects are: analyses, robots, worlds, tasks, losses, ...
+    """
+    if ref is None: return
+    items = []
+    for i, item_conf in enumerate(conf):
+        # instantiate an item of class "class" with the given configuration
+        # and append to list
+        items.append(item_conf["class"](item_conf, ref))
+    # return list
+    return items
+
 def set_attr_from_dict(obj, dictionary):
     """set attributes of an object with names from the dictionary's keys and their values from the dictionary's values"""
     for k,v in dictionary.items():
@@ -68,7 +81,7 @@ def set_attr_from_dict_ifs(ref, ifs_conf):
         # now that we know the dimensions of each part of sm space, initialize the vectors
         ref.smdict[k_] = np.zeros((dim_, 1))
             
-    print "%s ref(%s).smdict = %s" % ("set_attr_from_dict_ifs", ref.__class__.__name__, ref.smdict)
+    # print "%s ref(%s).smdict = %s" % ("set_attr_from_dict_ifs", ref.__class__.__name__, ref.smdict)
 
 
 def make_column_names_numbered(base = "base", times = 1):

@@ -11,19 +11,26 @@ Brain: taxis
 """
 
 import time
+import numpy as np
+
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
-from smq.robots import SimpleRandomRobot, PointmassRobot, PointmassRobot2, SimpleArmRobot
+from smq.robots import PointmassRobot2, SimpleArmRobot
 from smq.plot   import PlotTimeseries2, PlotTimeseriesND
-from smq.tasks  import NullTask, SetpointTask, GoalTask, GoalTask2, GoalTaskTaxis2
-from smq.brains import NullBrain, KinesisBrain, KinesisBrain2, TaxisBrain2
+from smq.brains import KinesisBrain2, TaxisBrain2
 
-import numpy as np
+# task
+from smq.tasks        import GoalTaskTaxis2
+from smq.goals        import JointGoal
+from smq.errors       import DifferenceError, AngularError
+from smq.measures     import MSEMeasure
+from smq.motivations  import UniformRandomMotivation, AngularPursuitMotivation
+
 
 # local variables for re-use
 numsteps = 1000
 dt = 0.1
-motors   = 7
+motors   = 3
 name = "taxis_sa_%dd" % (motors)
 expr_id = make_expr_id(name)
 
@@ -96,7 +103,10 @@ conf = {
                     "goal_dims_dict":   {"s_proprio": make_column_names_numbered("j_ang", motors)}, # map goal components to items in sm interface
                     "intero_goal_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
                     "intero_error_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
-                    # "loss": "mse",
+                    "goal": JointGoal,
+                    "error": DifferenceError,
+                    "measure": MSEMeasure,
+                    "motivation": AngularPursuitMotivation,
                 }
             ],
         },

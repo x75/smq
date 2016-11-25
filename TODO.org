@@ -5,10 +5,18 @@
 #+OPTIONS: toc:nil
 
 * Items
-
 ** TODO high-level design qu's
  - revert to blocks paradigm, all blocks of same basic type
- - globally share config among all blocks
+   - globally share config among all blocks
+   - use one shared type "Block", init from config all the same
+   - use one shared smdict to globally ferry information
+   - every block lists the subscriptions and publishers it wants/creates
+   - the config dict is mapped onto comp graph without structural change
+     (smpblocks)?
+   - hierarchical: "goal" is just another prediction in the motor
+     command sense, such as proprio layer makes a prediction at proprio
+     level, the lowest one, next level makes a prediction at one level
+     up which becomes the goal for proprio, etc
  - test multiple robots, tasks, ...
  - x how to separate world, robot, task appropriately: current state
    (v2) seems ok
@@ -20,6 +28,7 @@
  - x kinesis
 
 ** TODO add robots
+ - logfile reading robot
  - sphero
  - cartpole
  - x stdr
@@ -68,21 +77,15 @@
  - x use explauto or not? _no_
 
 ** TODO experiment specification
-
-experiments.py
-
-how to define experiment structure in conf that can capture different
-example scenarios like:
- -  single episode learning
- -  multi episode learning (value func prop)
- -  multi episode optimization (hpo, cma, evo, ...)
- -  infinite episode, ...
- -  single episode, single model, single task
- -  single run multiple models single task
- -  optimization run single model single task
-
-IDEA: use a generic type "loop" which has a "step" method and a
-"stack" member, stacks being ordered dicts/lists of "loops"
+ - how to define experiment structure in conf that can capture different example scenarios like:
+   - single episode learning
+   - multi episode learning (value func prop)
+   - multi episode optimization (hpo, cma, evo, ...)
+   - infinite episode, ...
+   - single episode, single model, single task
+   - single run multiple models single task
+   - optimization run single model single task
+ - IDEA: use a generic type "loop" which has a "step" method and a "stack" member, stacks being ordered dicts/lists of "loops"
 
 ** TODO logging
  - how logging and ros publishing is the same or not: ROS also

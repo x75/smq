@@ -13,10 +13,17 @@ Brain: kinesis
 import time
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
-from smq.robots import SimpleRandomRobot, PointmassRobot, PointmassRobot2
+from smq.robots import PointmassRobot2
 from smq.plot   import PlotTimeseries2, PlotTimeseriesND
-from smq.tasks  import NullTask, SetpointTask, GoalTask, GoalTask2
-from smq.brains import NullBrain, KinesisBrain, KinesisBrain2
+from smq.tasks  import GoalTask2
+from smq.brains import KinesisBrain2
+
+# task
+from smq.tasks        import GoalTask2
+from smq.goals        import JointGoal
+from smq.errors       import DifferenceError
+from smq.measures     import MSEMeasure
+from smq.motivations  import UniformRandomMotivation
 
 # local variables for re-use
 numsteps = 1000
@@ -87,7 +94,10 @@ conf = {
                     "goal_dims_dict":   {"s_extero": make_column_names_numbered("vel", motors)}, # map goal components to items in sm interface
                     "intero_goal_idx":  make_column_names_numbered("vel_goal", motors),   # map goal components to items in s_intero
                     "intero_error_idx": make_column_names_numbered("vel_error", motors),  # map goal components to items in s_intero
-                    # "loss": "mse",
+                    "goal": JointGoal,
+                    "error": DifferenceError,
+                    "measure": MSEMeasure,
+                    "motivation": UniformRandomMotivation,
                 }
             ],
         },

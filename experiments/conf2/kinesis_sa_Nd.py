@@ -11,14 +11,20 @@ Brain: kinesis
 """
 
 import time
+import numpy as np
+
+# smq imports
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
 from smq.robots import PointmassRobot2, SimpleArmRobot
 from smq.plot   import PlotTimeseries2, PlotTimeseriesND
-from smq.tasks  import GoalTask2
 from smq.brains import KinesisBrain2
-
-import numpy as np
+# task
+from smq.tasks        import GoalTask2
+from smq.goals        import JointGoal
+from smq.errors       import DifferenceError
+from smq.measures     import MSEMeasure
+from smq.motivations  import UniformRandomMotivation
 
 # local variables for re-use
 numsteps = 1000
@@ -82,12 +88,12 @@ conf = {
             "class": KinesisBrain2,
             "name": make_robot_name(expr_id, "kinesisbrain", 0),
             "dim_s_motor": motors,
-            "variant": "binary_threshold", # "continuous_linear"
-            "continuous_gain": 1.5,
+            "variant": "continuous_linear", # "binary_threshold"
+            "continuous_gain": 0.7,
             "binary_threshold": 0.05,
             "binary_high_range": 0.5, # np.pi/2.0,
             "binary_low_range": 0.01,
-            # do it like: goals, measures, motivations?
+            # do it like: goal, error, measure, motivation?
             # tasks be of length either one or same as len(robots)
             "tasks": [
                 {
@@ -96,7 +102,10 @@ conf = {
                     "goal_dims_dict":   {"s_proprio": make_column_names_numbered("j_ang", motors)}, # map goal components to items in sm interface
                     "intero_goal_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
                     "intero_error_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
-                    # "loss": "mse",
+                    "goal": JointGoal,
+                    "error": DifferenceError,
+                    "measure": MSEMeasure,
+                    "motivation": UniformRandomMotivation,
                 }
             ],
         },

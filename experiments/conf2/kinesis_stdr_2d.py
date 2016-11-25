@@ -13,10 +13,17 @@ Brain: kinesis
 import time
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
-from smq.robots import SimpleRandomRobot, PointmassRobot, PointmassRobot2, STDRCircularRobot
+from smq.robots import PointmassRobot2, STDRCircularRobot
 from smq.plot   import PlotTimeseries2, PlotTimeseries2D, PlotTimeseriesND
-from smq.tasks  import NullTask, SetpointTask, GoalTask, GoalTask2, GoalTaskTaxis2
-from smq.brains import NullBrain, KinesisBrain, KinesisBrain2, TaxisBrain2
+from smq.tasks  import GoalTask2, GoalTaskTaxis2
+from smq.brains import KinesisBrain2, TaxisBrain2
+
+# task
+from smq.tasks        import GoalTask2
+from smq.goals        import JointGoal, PosGoal
+from smq.errors       import DifferenceError
+from smq.measures     import MSEMeasure
+from smq.motivations  import UniformRandomMotivation
 
 # local variables for re-use
 numsteps = 1000
@@ -81,7 +88,7 @@ conf = {
             "dim_s_motor": motors,
             "variant": "binary_threshold", # "continuous_linear"
             "continuous_gain": 5.0,
-            "binary_threshold": 0.5, #0.3,
+            "binary_threshold": 0.3, #0.3,
             "binary_high_range": 3.0,
             "binary_low_range": 0.1,
             # tasks be of length either one or same as len(robots)
@@ -98,6 +105,10 @@ conf = {
                     # "intero_goal_idx":  make_column_names_numbered("sonar_goal", 3),   # map goal components to items in s_intero
                     # "intero_error_idx": make_column_names_numbered("sonar_error", 3),  # map goal components to items in s_intero
                     # "loss": "mse",
+                    "goal": PosGoal,
+                    "error": DifferenceError,
+                    "measure": MSEMeasure,
+                    "motivation": UniformRandomMotivation,
                 }
             ],
         },
