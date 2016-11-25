@@ -24,7 +24,8 @@ class Motivation2(object):
         # - goal (current goal)
         # - certainty / confidence
 
-        self.goal = np.zeros((self.goal_dims_num, 1))
+        # self.goal = np.zeros((self.goal_dims_num, 1))
+        self.goal = np.zeros((self.dim_s_motor, 1))
         # print "%s.__init__: dir(self) = %s" % (self.__class__.__name__,  dir(self))
         
         

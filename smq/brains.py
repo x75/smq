@@ -38,7 +38,7 @@ class Brain2(object):
         # configure motivation
         if not conf.has_key("motivations"):
             conf["motivations"] = default_conf_motivations
-            conf["goaldim"] = conf["tasks"][0]["goal_dims_num"]
+            # conf["task"] = self.tasks[
         # copy interfaces config
         conf["ifs"] = [ifs_conf]
         self.motivations = get_items2(conf, "motivations")

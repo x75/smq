@@ -15,7 +15,7 @@ from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
 from smq.robots import PointmassRobot2, SimpleArmRobot
 from smq.plot   import PlotTimeseries2, PlotTimeseriesND
-from smq.tasks  import NullTask, SetpointTask, GoalTask, GoalTask2
+from smq.tasks  import GoalTask2
 from smq.brains import KinesisBrain2
 
 import numpy as np
@@ -87,6 +87,7 @@ conf = {
             "binary_threshold": 0.05,
             "binary_high_range": 0.5, # np.pi/2.0,
             "binary_low_range": 0.01,
+            # do it like: goals, measures, motivations?
             # tasks be of length either one or same as len(robots)
             "tasks": [
                 {
