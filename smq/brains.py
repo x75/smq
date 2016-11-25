@@ -11,7 +11,7 @@ from collections import OrderedDict
 from smq.utils import get_items, get_items2, get_items_with_ref, ct_pol2car, ct_car2pol
 
 from smq.core import IFSMQModule
-from smq.motivation import default_conf_motivations
+from smq.motivations import default_conf_motivations
 
 ################################################################################
 # Brain's are things that can be fed with numbers (data) and which respond with
@@ -32,10 +32,9 @@ class Brain2(IFSMQModule):
         # configure motivation
         if not conf.has_key("motivations"):
             conf["motivations"] = default_conf_motivations
-            # conf["task"] = self.tasks[
         # copy interfaces config
         conf["ifs"] = [ifs_conf]
-        self.motivations = get_items2(conf, "motivations")
+        self.motivations = get_items_with_ref(conf["tasks"], self)
         print "self.motivations", self.motivations
         
         # assert one reward for each task?
