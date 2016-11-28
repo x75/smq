@@ -24,7 +24,6 @@ grow package by stepping through the tasks
  - EH base learner (paper repr)
  - ISO learner stdr (repr?)
 
-
 ** TODO design questons
  - default configuration generator, also use it to repair/update old
    configs
@@ -47,7 +46,7 @@ grow package by stepping through the tasks
 ** TODO add brains
  - interest models, learning from kinesis / kinesis as explorer
  - im, imol, actinf, eh, iso, ...
- - hyperopt'ing
+ - hyperopt'ing / evolution: this is quite important and needs to be present all the time?
  - x taxis
  - x kinesis
 
