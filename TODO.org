@@ -6,7 +6,8 @@
 
 * Items
 ** TODO tasks
-the actually interesting bit, grow package by stepping through the tasks
+
+grow package by stepping through the tasks
 
  - x jumping goal: x by counting, x by average error
  - learn an e2p model, e.g. taxis with distinct goal- and
@@ -20,10 +21,14 @@ the actually interesting bit, grow package by stepping through the tasks
    directional field, internal simulation, TSPwAC, reservoir fillup/consumption
  - motor babbling
  - goal babbling
+ - EH base learner (paper repr)
+ - ISO learner stdr (repr?)
 
 
-** TODO high-level design qu's
- - default configuration generator, also use it to repair/update old configs
+** TODO design questons
+ - default configuration generator, also use it to repair/update old
+   configs
+ - introduce sm channel delays / mi / correlator
  - revert to blocks paradigm, all blocks of same basic type
    - globally share config among all blocks
    - use one shared type "Block", init from config all the same
