@@ -13,6 +13,8 @@ from smq.utils import get_items, get_items2, get_items_with_ref, ct_pol2car, ct_
 from smq.core import IFSMQModule
 from smq.motivations import default_conf_motivations
 
+from actinf_models import ActInfGMM
+
 ################################################################################
 # Brain's are things that can be fed with numbers (data) and which respond with
 # predictions about future values of sensorimotor space. Those predictions corresponding
@@ -151,18 +153,29 @@ class E2PBrain2(Brain2):
     def __init__(self, conf, ifs_conf):
         Brain2.__init__(self, conf, ifs_conf)
 
-        self.e2p = None
+        e2p_dim = self.dim_s_proprio + self.dim_s_extero
+        self.e2p = ActInfGMM(e2p_dim)
                 
     def step(self, x):
         """ingest new sensory measurements into state"""
         self.step_check_input(x)
 
-        self.e2p.step(self.smdict["s_extero"], self.smdict["s_intero"])
-        self.smdict["s_intero"]["j_ang_"] = self.e2p(self.smdict["s_extero"])
+        self.e2p.fit(self.smdict["s_extero"].T, self.smdict["s_proprio"].T)
+        cond = np.vstack((self.smdict["s_extero"], self.smdict["s_proprio"]))
+        cond[2:] = np.nan
+        ret = self.e2p.predict(cond)
+        pred_idx = self.get_sm_index("s_intero", "j_ang_")
+        print "ret", ret, self.smdict["s_intero"][pred_idx]
+        self.smdict["s_intero"][pred_idx] = ret
+
+        print "s_pred.shape", self.smdict["s_pred"].shape
         
         for i,task in enumerate(self.tasks):
             self.smdict = task.eval(self.smdict, i)
         
+        print "s_pred.shape", self.smdict["s_pred"].shape
         prediction = self.predict_proprio()
+        print "s_pred.shape", self.smdict["s_pred"].shape
+        print "prediction.shape", prediction.shape
         assert(prediction.shape == (self.dim_s_motor, 1))
         return prediction

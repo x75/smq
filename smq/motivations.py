@@ -71,6 +71,7 @@ class AngularPursuitMotivation(Motivation):
         # cartesian error as computed earlier
         error_cart = smdict["s_intero"][self.intero_error_idx_num]
 
+        print "error_cart.shape", error_cart.shape
         # add noise to error
         error_cart += np.random.normal(0, error_cart_level, error_cart.shape)
 
@@ -92,6 +93,7 @@ class AngularPursuitMotivation(Motivation):
             
             # transform back to cartesian
             pred = -ct_pol2car(gain, arrarg).reshape(error_cart.shape)
+            # print "pred.shape", pred.shape
         else:
             pred = -np.sign(error_cart) * gain
 
