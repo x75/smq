@@ -17,7 +17,7 @@ from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
 from smq.robots import PointmassRobot2, SimpleArmRobot
 from smq.plot   import PlotTimeseries2, PlotTimeseriesND, PlotTimeseriesNDrealtimeseries
-from smq.brains import KinesisBrain2, TaxisBrain2, E2PBrain2
+from smq.brains import Brain2, KinesisBrain2, TaxisBrain2, E2PBrain2
 
 # task
 from smq.tasks        import GoalTaskTaxis2
@@ -31,7 +31,6 @@ from smq.motivations  import UniformRandomMotivation, AngularPursuitMotivation
 numsteps = 1000
 dt = 0.1
 motors   = 3
-extero   = 2
 name = "taxis_sa_%dd" % (motors)
 expr_id = make_expr_id(name)
 
@@ -49,12 +48,12 @@ conf = {
             # actually: make that lists of names whose length is the dim
             # from world
             "dim_s_proprio": make_column_names_numbered("j_ang", motors),
-            "dim_s_extero": make_column_names_numbered("ee_pos", extero),
+            "dim_s_extero": make_column_names_numbered("ee_pos", 2),
             # internal
             "dim_s_intero": make_column_names_numbered("j_ang_", motors) + \
         make_column_names_numbered("pos_", motors) + \
-        make_column_names_numbered("ee_pos_error", extero) + \
-        make_column_names_numbered("ee_pos_goal", extero), #+ \
+        make_column_names_numbered("j_ang_error", motors) + \
+        make_column_names_numbered("j_ang_goal", motors), #+ \
 #        make_column_names_numbered("thresh", motors),
             "dim_s_reward": make_column_names_numbered("dist_goal", 1),
             "dim_s_pred": make_column_names_numbered("j_ang_vel_pred", motors),
@@ -101,9 +100,10 @@ conf = {
                 {
                     "class": GoalTaskTaxis2,  # class
                     "name": "goaltasktaxis2", # name
-                    "goal_dims_dict":   {"s_extero": make_column_names_numbered("ee_pos", extero)}, # map goal components to items in sm interface
-                    "intero_goal_idx":  make_column_names_numbered("ee_pos_goal", extero),   # map goal components to items in s_intero
-                    "intero_error_idx": make_column_names_numbered("ee_pos_error", extero),  # map goal components to items in s_intero
+                    "goaltype": "extero_cart",
+                    "goal_dims_dict":   {"s_proprio": make_column_names_numbered("j_ang", motors)}, # map goal components to items in sm interface
+                    "intero_goal_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
+                    "intero_error_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
                     "goald": {
                         "class": AvgErrorPosGoal,
                         "thresh": 0.005,
@@ -132,8 +132,8 @@ conf = {
             "title": "%s" % (expr_id),
             "type": "seaborn", # "pyplot",
             "plotitems": ["brains"],
-            "cols": make_column_names_numbered("ee_pos", extero) + make_column_names_numbered("ee_pos", extero) + make_column_names_numbered("j_ang_vel_pred", motors),
-            "cols_goal_base": "ee_pos_goal",
+            "cols": make_column_names_numbered("j_ang", motors) + make_column_names_numbered("ee_pos", 2) + make_column_names_numbered("j_ang_vel_pred", motors),
+            "cols_goal_base": "j_ang_goal",
         },
         {
             "class": PlotTimeseriesNDrealtimeseries,
@@ -141,8 +141,8 @@ conf = {
             "title": "%s" % (expr_id),
             "type": "seaborn", # "pyplot",
             "plotitems": ["brains"],
-            "cols": make_column_names_numbered("ee_pos", extero),
-            "cols_goals": make_column_names_numbered("ee_pos_goal", extero),
+            "cols": make_column_names_numbered("j_ang", motors),
+            "cols_goals": make_column_names_numbered("j_ang_goal", motors),
         },
     ],
 }

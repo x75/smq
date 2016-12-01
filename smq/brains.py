@@ -27,18 +27,19 @@ class Brain2(IFSMQModule):
                             
         # configure tasks
         self.tasks = get_items_with_ref(conf["tasks"], self)
+        print "%s.__init__: self.tasks = %s"  % (self.__class__.__name__, self.tasks)
         # for task in self.tasks:
         #     # task.brain = self
         #     task.prepare(self)
 
-        # configure motivation
-        if not conf.has_key("motivations"):
-            conf["motivations"] = default_conf_motivations
-            # conf["task"] = self.tasks[
-        # copy interfaces config
-        conf["ifs"] = [ifs_conf]
-        self.motivations = get_items_with_ref(conf["tasks"], self)
-        print "self.motivations", self.motivations
+        # # configure motivation
+        # if not conf.has_key("motivations"):
+        #     conf["motivations"] = default_conf_motivations
+        #     # conf["task"] = self.tasks[
+        # # copy interfaces config
+        # conf["ifs"] = [ifs_conf]
+        # self.motivations = get_items_with_ref(conf["tasks"], self)
+        # print "self.motivations", self.motivations
         
         # assert one reward for each task?
         assert(len(self.tasks) == self.dim_s_reward)
@@ -155,27 +156,48 @@ class E2PBrain2(Brain2):
 
         e2p_dim = self.dim_s_proprio + self.dim_s_extero
         self.e2p = ActInfGMM(e2p_dim)
-                
+
     def step(self, x):
         """ingest new sensory measurements into state"""
         self.step_check_input(x)
 
         self.e2p.fit(self.smdict["s_extero"].T, self.smdict["s_proprio"].T)
-        cond = np.vstack((self.smdict["s_extero"], self.smdict["s_proprio"]))
-        cond[2:] = np.nan
-        ret = self.e2p.predict(cond)
-        pred_idx = self.get_sm_index("s_intero", "j_ang_")
-        print "ret", ret, self.smdict["s_intero"][pred_idx]
-        self.smdict["s_intero"][pred_idx] = ret
 
-        print "s_pred.shape", self.smdict["s_pred"].shape
+        # print "s_pred.shape", self.smdict["s_pred"].shape
         
         for i,task in enumerate(self.tasks):
             self.smdict = task.eval(self.smdict, i)
-        
+                    
         print "s_pred.shape", self.smdict["s_pred"].shape
         prediction = self.predict_proprio()
         print "s_pred.shape", self.smdict["s_pred"].shape
         print "prediction.shape", prediction.shape
+        
         assert(prediction.shape == (self.dim_s_motor, 1))
         return prediction
+    
+    # predict proprioceptive state             
+    def predict_proprio(self):
+        """produce new predictions based on state
+        
+        by definition proprio space is identical to motor space
+
+        task should already provide a prediction for itself,
+        brain combines potentially multiple predictions"""
+        
+        for i, task in enumerate(self.tasks):
+            self.smdict = task.motivation.step(self.smdict, i)
+
+        # # now cartesian angular motion is in s_pred, need to change that to proprio
+        # cond = np.vstack((self.smdict["s_extero"], self.smdict["s_proprio"]))
+        # cond[2:] = np.nan
+        # ret = self.e2p.predict(cond)
+        # intero_idx = self.get_sm_index("s_intero", "j_ang_")
+        # pred_idx = self.get_sm_index("s_pred", "j_ang_vel_pred")
+        # # print "ret", ret, self.smdict["s_intero"][intero_idx]
+        # print "pred_idx", pred_idx, ret.shape
+        # self.smdict["s_intero"][intero_idx] = ret.reshape((self.dim_s_motor, 1))
+        # self.smdict["s_pred"] = ret.reshape((self.dim_s_motor, 1)) #[pred_idx]
+            
+        return self.smdict["s_pred"]
+    

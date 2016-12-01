@@ -8,7 +8,9 @@ class Goal(SMQModule):
     def __init__(self, conf):
         SMQModule.__init__(self, conf)
         set_attr_from_dict(self, conf["goald"])
-        
+
+        # step counter
+        self.cnt = 0        
         # goal vector
         self.goal = np.zeros((self.goal_dims_num, 1))
         
@@ -19,6 +21,8 @@ class Goal(SMQModule):
             self.goald["maxs"] = 0.7
 
     def step(self, smdict):
+        self.sample()
+        self.cnt += 1
         return smdict
 
 class JointGoal(Goal):
@@ -33,8 +37,12 @@ class PosGoal(Goal):
     def __init__(self, conf):
         Goal.__init__(self, conf)
 
-        self.goal = self.sample()
+        # self.goal = self.sample()
 
+    # all modules should be fundamentally blocks responding to step() for completely generic experiment configuration graphs
+    # all modules log inputs and outputs within their own namespace
+    # all modules should know necessary dims, get shape foo straight with assert and reshape?
+        
     def sample(self):
         # FIXME: configure limits
         if hasattr(self, "goaltype"):
@@ -42,6 +50,30 @@ class PosGoal(Goal):
                 ret = np.array([[1.0], [0.55], [0.45]])
             elif self.goaltype == "stdr_pos":
                 ret = np.array([[1], [1]])
+            elif self.goaltype == "extero_cart":
+                # print "%s.sample: self.brain = %s" % (self.__class__.__name__, dir(self.brain))
+
+                # now cartesian angular motion is in s_pred, need to change that to proprio
+                cond = np.vstack((self.brain.smdict["s_extero"], self.brain.smdict["s_proprio"]))
+                print "cond", cond
+                cond[:2] = np.random.uniform([0, -1], [1, 1], (1, 2)).T
+                cond[2:] = np.nan
+                if self.brain.e2p.fitted:
+                    ret1 = self.brain.e2p.predict(cond).T
+                else:
+                    ret1 = np.random.uniform(self.goald["mins"], self.goald["maxs"], (self.goal_dims_num, 1))
+                intero_idx = self.brain.get_sm_index("s_intero", "j_ang_")
+                pred_idx = self.brain.get_sm_index("s_pred", "j_ang_vel_pred")
+                # print "ret", ret, self.smdict["s_intero"][intero_idx]
+                # print "pred_idx", pred_idx, ret.shape
+                # self.smdict["s_intero"][intero_idx] = ret.reshape((self.dim_s_motor, 1))
+                # self.smdict["s_pred"] = ret.reshape((self.dim_s_motor, 1)) #[pred_idx]
+        
+                # ret = np.random.uniform(self.goald["mins"], self.goald["maxs"], (self.goal_dims_num, 1))
+                print "%s.sample: goal = %s/%s" % (self.__class__.__name__, ret1.shape, ret1)
+                # ret = ret1.T
+                ret = ret1
+                print "%s.sample: goal = %s/%s" % (self.__class__.__name__, ret.shape, ret)
             else:
                 ret = np.random.uniform(0.0, 1.0, (self.goal_dims_num, 1))
         else:
@@ -68,14 +100,15 @@ class AvgErrorPosGoal(PosGoal):
         self.coeff = 0.05
         self.cnt = 0
 
-    def step(self, smdict):
-        smdict = PosGoal.step(self, smdict)
+    # def step(self, smdict):
+    #     smdict = PosGoal.step(self, smdict)
 
-        self.avgerror = self.avgerror * (1 - self.coeff) + smdict["s_reward"] * self.coeff
-        if self.cnt > 100:
+    #     return smdict
+
+    def sample(self):
+        self.avgerror = self.avgerror * (1 - self.coeff) + self.brain.smdict["s_reward"] * self.coeff
+        if self.cnt == 0 or self.cnt > 100:
             if self.avgerror < self.thresh:
-                self.goal = self.sample()
-        else:
-            self.cnt += 1
-        
-        return smdict
+                self.goal = PosGoal.sample(self)
+        print "self.goal = %s" % self.goal
+        return self.goal
