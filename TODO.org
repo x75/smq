@@ -25,6 +25,9 @@ grow package by stepping through the tasks
  - ISO learner stdr (repr?)
 
 ** TODO design questons
+ - handle multiple goals: proprio goal is special
+ - all modules should know necessary dims, get shape foo straight with
+   assert and reshape?
  - default configuration generator, also use it to repair/update old
    configs
  - introduce sm channel delays / mi / correlator
@@ -39,6 +42,8 @@ grow package by stepping through the tasks
      command sense, such as proprio layer makes a prediction at proprio
      level, the lowest one, next level makes a prediction at one level
      up which becomes the goal for proprio, etc
+ - all modules should be fundamentally blocks responding to step() for
+   completely generic experiment configuration graphs
  - test multiple robots, tasks, ...
  - x how to separate world, robot, task appropriately: current state
    (v2) seems ok
@@ -123,6 +128,7 @@ grow package by stepping through the tasks
     exploration, actinf, evo, hyperopt)?
 
 ** TODO logging
+ - all modules log inputs and outputs within their own namespace
  - how logging and ros publishing is the same or not: ROS also
    involves inputs whereas logging is only one-way
  - logging/publishing decorators

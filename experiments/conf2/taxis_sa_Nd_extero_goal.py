@@ -31,6 +31,7 @@ from smq.motivations  import UniformRandomMotivation, AngularPursuitMotivation
 numsteps = 1000
 dt = 0.1
 motors   = 3
+extero   = 2
 name = "taxis_sa_%dd" % (motors)
 expr_id = make_expr_id(name)
 
@@ -51,10 +52,11 @@ conf = {
             "dim_s_extero": make_column_names_numbered("ee_pos", 2),
             # internal
             "dim_s_intero": make_column_names_numbered("j_ang_", motors) + \
-        make_column_names_numbered("pos_", motors) + \
         make_column_names_numbered("j_ang_error", motors) + \
-        make_column_names_numbered("j_ang_goal", motors), #+ \
-#        make_column_names_numbered("thresh", motors),
+        make_column_names_numbered("j_ang_goal", motors) + \
+        make_column_names_numbered("pos_", extero) + \
+        make_column_names_numbered("pos_error", extero) + \
+        make_column_names_numbered("pos_goal", extero),
             "dim_s_reward": make_column_names_numbered("dist_goal", 1),
             "dim_s_pred": make_column_names_numbered("j_ang_vel_pred", motors),
             # to world
@@ -126,15 +128,15 @@ conf = {
     ],
     "loss": "mse",
     "analyses": [
-        {
-            "class": PlotTimeseriesND,
-            "name": "plottimeseries",
-            "title": "%s" % (expr_id),
-            "type": "seaborn", # "pyplot",
-            "plotitems": ["brains"],
-            "cols": make_column_names_numbered("j_ang", motors) + make_column_names_numbered("ee_pos", 2) + make_column_names_numbered("j_ang_vel_pred", motors),
-            "cols_goal_base": "j_ang_goal",
-        },
+        # {
+        #     "class": PlotTimeseriesND,
+        #     "name": "plottimeseries",
+        #     "title": "%s" % (expr_id),
+        #     "type": "seaborn", # "pyplot",
+        #     "plotitems": ["brains"],
+        #     "cols": make_column_names_numbered("j_ang", motors) + make_column_names_numbered("ee_pos", 2) + make_column_names_numbered("j_ang_vel_pred", motors),
+        #     "cols_goal_base": "j_ang_goal",
+        # },
         {
             "class": PlotTimeseriesNDrealtimeseries,
             "name": "plottimeseries",

@@ -38,10 +38,6 @@ class PosGoal(Goal):
         Goal.__init__(self, conf)
 
         # self.goal = self.sample()
-
-    # all modules should be fundamentally blocks responding to step() for completely generic experiment configuration graphs
-    # all modules log inputs and outputs within their own namespace
-    # all modules should know necessary dims, get shape foo straight with assert and reshape?
         
     def sample(self):
         # FIXME: configure limits
@@ -54,16 +50,20 @@ class PosGoal(Goal):
                 # print "%s.sample: self.brain = %s" % (self.__class__.__name__, dir(self.brain))
 
                 # now cartesian angular motion is in s_pred, need to change that to proprio
+                # FIXME: all hardcoded stuff
                 cond = np.vstack((self.brain.smdict["s_extero"], self.brain.smdict["s_proprio"]))
-                print "cond", cond
-                cond[:2] = np.random.uniform([0, -1], [1, 1], (1, 2)).T
+                # print "cond", cond
+                cond[:self.brain.dim_s_extero] = np.random.uniform(-1.0, 1.0, (1, self.brain.dim_s_extero)).T
+                # np.random.uniform([0, -1], [1, 1], (1, 2)).T
                 cond[2:] = np.nan
                 if self.brain.e2p.fitted:
                     ret1 = self.brain.e2p.predict(cond).T
                 else:
                     ret1 = np.random.uniform(self.goald["mins"], self.goald["maxs"], (self.goal_dims_num, 1))
-                intero_idx = self.brain.get_sm_index("s_intero", "j_ang_")
-                pred_idx = self.brain.get_sm_index("s_pred", "j_ang_vel_pred")
+                intero_pos_goal_idx = self.brain.get_sm_index("s_intero", "pos_goal", indexdim = 2)
+                self.brain.smdict["s_intero"][intero_pos_goal_idx] = cond[:2]
+                # intero_idx = self.brain.get_sm_index("s_intero", "j_ang_")
+                # pred_idx = self.brain.get_sm_index("s_pred", "j_ang_vel_pred")
                 # print "ret", ret, self.smdict["s_intero"][intero_idx]
                 # print "pred_idx", pred_idx, ret.shape
                 # self.smdict["s_intero"][intero_idx] = ret.reshape((self.dim_s_motor, 1))

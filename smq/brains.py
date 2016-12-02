@@ -44,8 +44,10 @@ class Brain2(IFSMQModule):
         # assert one reward for each task?
         assert(len(self.tasks) == self.dim_s_reward)
 
-    def get_sm_index(self, dimgroup, base):
-        return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(self.dim_s_motor)]
+    def get_sm_index(self, dimgroup, base, indexdim = None):
+        if indexdim is None:
+            indexdim = self.dim_s_motor
+        return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(indexdim)]
         
     def get_logdata(self):
         """collect all internal variables, stack them into one vector and
@@ -161,6 +163,7 @@ class E2PBrain2(Brain2):
         """ingest new sensory measurements into state"""
         self.step_check_input(x)
 
+        # FIXME: do the batch fit asynchronously in a separate thread
         self.e2p.fit(self.smdict["s_extero"].T, self.smdict["s_proprio"].T)
 
         # print "s_pred.shape", self.smdict["s_pred"].shape

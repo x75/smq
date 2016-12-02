@@ -352,6 +352,19 @@ class PlotTimeseriesNDrealtimeseries(Plot):
         else:
             cols  = ["vel%d" % (i) for i in range(items[0].dim_s_motor)]
             cols += ["acc_pred%d" % (i) for i in range(items[0].dim_s_motor)]
+
+        numplots = 1
+        cols_ext = []
+        for i in range(items[0].dim_s_extero):
+            colname = "pos_goal%d" % i
+            if colname in columns:
+                cols_ext += [colname]
+                numplots = 2
+            colname = "ee_pos%d" % i
+            if colname in columns:
+                cols_ext += [colname]
+
+            
         df2 = df[cols]
 
         print df2
@@ -365,6 +378,10 @@ class PlotTimeseriesNDrealtimeseries(Plot):
         fig = pl.figure()
         fig.suptitle("Experiment %s, module %s" % (self.title, tbl_key))
 
+        if numplots == 1:
+            pl.subplot(111)
+        else:
+            pl.subplot(211)
         x1 = df[cols].values
         x2 = df[self.cols_goals].values
         # print "x1.shape", x1.shape
@@ -373,51 +390,8 @@ class PlotTimeseriesNDrealtimeseries(Plot):
         print "x1plot.shape", x1plot.shape
         pl.plot(x1plot)
         pl.plot(x2plot)
+
+        if numplots == 2:
+            pl.subplot(212)
+            pl.plot(df[cols_ext])
         pl.show()
-        
-    #     for i in range(data.shape[0]): # loop over data items
-    #         ax1 = pl.subplot2grid((data.shape[0], 2), (i, 0))
-    #         ax1 = self.make_plot_timeseries(ax1, data[i], columns[i])
-            
-    #         ax2 = pl.subplot2grid((data.shape[0], 2), (i, 1)) # second plotgrid column
-    #         ax2 = self.make_plot_histogram(ax2, data[i], columns[i])
-
-    #     # global for plot, use last axis
-    #     ax1.set_xlabel("t [steps]")
-    #     ax2.set_xlabel("counts")
-        
-    #     # fig.show() # this doesn't work
-    #     pl.show()
-
-    # def make_plot_timeseries(self, ax, data, columns):
-    #     ax.plot(data, "k-", alpha=0.5)
-    #     # print "columns[i]", type(columns[i])
-    #     ax.legend(["%s" % (columns)])
-    #     return ax
-
-    # def make_plot_histogram(self, ax, data, columns):
-    #     ax.hist(data, bins=20, orientation="horizontal")
-    #     ax.legend(["%s" % (columns)])
-    #     # pl.hist(data.T, bins=20, orientation="horizontal")
-    #     return ax
-
-
-            
-        # g = sns.PairGrid(df2)
-        # g.map_diag(pl.hist)
-        # g.map_offdiag(pl.hexbin, cmap="gray", gridsize=30, bins="log");
-
-        # # print "dir(g)", dir(g)
-        # # print g.diag_axes
-        # # print g.axes
-        # for i in range(items[0].dim_s_motor):
-        #     for j in range(items[0].dim_s_motor): # 1, 2; 0, 2; 0, 1
-        #         if i == j:
-        #             continue
-        #         # column gives x axis, row gives y axis, thus need to reverse the selection for plotting goal
-        #         g.axes[i,j].plot(df["%s%d" % (self.cols_goal_base, j)], df["%s%d" % (self.cols_goal_base, i)], "ro", alpha=0.5)
-                
-        # pl.show()
-
-        # pl.hist(df["dist_goal0"].values, bins=20)
-        # pl.show()
