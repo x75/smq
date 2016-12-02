@@ -146,14 +146,16 @@ class ExteroPosGoal(PosGoal):
         if not hasattr(self.brain, "e2p"):
             print "%s.__init__: wrong brain, does not seem to have an e2p module, exiting" % (self.__class__.__name__)
             raise AttributeError
+        self.goal_ext = np.random.uniform(-1.0, 1.0, (1, self.brain.dim_s_extero)).T
+
 
     def sample(self):
         # now cartesian angular motion is in s_pred, need to change that to proprio
         # FIXME: all hardcoded stuff
         cond = np.vstack((self.brain.smdict["s_extero"], self.brain.smdict["s_proprio"]))
         # print "cond", cond
-        goal_ext = np.random.uniform(-1.0, 1.0, (1, self.brain.dim_s_extero)).T
-        cond[:self.brain.dim_s_extero] = goal_ext
+        self.goal_ext = np.random.uniform(-1.0, 1.0, (1, self.brain.dim_s_extero)).T
+        cond[:self.brain.dim_s_extero] = self.goal_ext
         # np.random.uniform([0, -1], [1, 1], (1, 2)).T
         cond[2:] = np.nan
         if self.brain.e2p.fitted:
@@ -177,4 +179,36 @@ class ExteroPosGoal(PosGoal):
         return self.goal
         # return ret
 
+class AvgErrorExteroPosGoal(ExteroPosGoal):
+    """Average error position goal, if the average error is below a theshold 'thresh'
+    sample a new goal"""
+    def __init__(self, conf):
+        ExteroPosGoal.__init__(self, conf)
+        self.avgerror_prop = 0.0 # force resample
+        self.avgerror_ext  = 0.0 # 
+        self.avgerror_prop_ = 0.0 # t - 1
+        self.avgerror_ext_  = 0.0 #
+        # difference
+        # avg difference
+        # FIXME: generic function to compute: error, avg error, error derivative, avg error derivative, then replace error with some signal
+        self.coeff = 0.05
+        self.cnt = 0
+        # FIXME: rather use average change in error
 
+    def sample(self):
+        # compute the average error
+        self.avgerror_prop = self.avgerror_prop * (1 - self.coeff) + self.brain.smdict["s_reward"] * self.coeff
+        # log average error to sm space
+        avgerrpropidx = self.brain.get_sm_index("s_intero", "avgerrorposgoal_avgerror", indexdim = 1)
+        self.brain.smdict["s_intero"][avgerrpropidx] = self.avgerror_prop
+
+        exterr = np.sum(np.square((self.brain.smdict["s_extero"] - self.goal_ext)))
+        self.avgerror_ext  = self.avgerror_prop * (1 - self.coeff) + exterr * self.coeff
+        
+        # check if threshold exceeded
+        if self.cnt == 0 or self.cnt > 100:
+            if self.avgerror_prop < self.thresh or self.avgerror_ext < self.thresh:
+                self.goal = ExteroPosGoal.sample(self)
+        # FIXME: shouldn't we be logging the goal here?
+        print "self.goal = %s" % self.goal
+        return self.goal

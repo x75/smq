@@ -21,7 +21,7 @@ from smq.brains import Brain2, KinesisBrain2, TaxisBrain2, E2PBrain2
 
 # task
 from smq.tasks        import GoalTaskTaxis2
-from smq.goals        import JointGoal, CntPosGoal, AvgErrorPosGoal, ExteroPosGoal#,  AvgErrorExteroPosGoal
+from smq.goals        import JointGoal, CntPosGoal, AvgErrorPosGoal, ExteroPosGoal, AvgErrorExteroPosGoal
 from smq.errors       import DifferenceError, AngularError
 from smq.measures     import MSEMeasure
 from smq.motivations  import UniformRandomMotivation, AngularPursuitMotivation
@@ -109,7 +109,7 @@ conf = {
                     "prop_goal_intero_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
                     "prop_error_intero_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
                     "goald": {
-                        "class": ExteroPosGoal, #AvgErrorPosGoal,
+                        "class": AvgErrorExteroPosGoal, #ExteroPosGoal, #AvgErrorPosGoal,
                         "thresh": 0.005,
                     }, # JointGoal, # CntPosGoal,
                     "error": DifferenceError,

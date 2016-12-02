@@ -53,8 +53,8 @@ conf = {
             "dim_s_intero": make_column_names_numbered("j_ang_", motors) + \
         make_column_names_numbered("pos_", motors) + \
         make_column_names_numbered("j_ang_error", motors) + \
-        make_column_names_numbered("j_ang_goal", motors), #+ \
-#        make_column_names_numbered("thresh", motors),
+        make_column_names_numbered("j_ang_goal", motors) + \
+        make_column_names_numbered("avgerrorposgoal_avgerror", 1),
             "dim_s_reward": make_column_names_numbered("dist_goal", 1),
             "dim_s_pred": make_column_names_numbered("j_ang_vel_pred", motors),
             # to world
