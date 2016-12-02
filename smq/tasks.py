@@ -16,8 +16,8 @@ class Task2(SMQModule):
         self.goal_dims = {}
 
         # numerical indices into s_intero for goal and error
-        self.intero_goal_idx_num =  []
-        self.intero_error_idx_num = []
+        self.prop_goal_intero_idx_num =  []
+        self.prop_error_intero_idx_num = []
 
         # compute more member values from configuration dict
         self.prepare(ref)
@@ -50,8 +50,8 @@ class Task2(SMQModule):
         self.measure.step(self.error.error)
 
         # assign new values intero variables
-        x["s_intero"][self.intero_goal_idx_num] = self.goald.goal # FIXME: hard-coded index?
-        x["s_intero"][self.intero_error_idx_num] = self.error.error # FIXME: hard-coded index?
+        x["s_intero"][self.prop_goal_intero_idx_num] = self.goald.goal # FIXME: hard-coded index?
+        x["s_intero"][self.prop_error_intero_idx_num] = self.error.error # FIXME: hard-coded index?
         x["s_reward"][i,0] = self.measure.measure
 
         # and return the dict
@@ -61,7 +61,7 @@ class Task2(SMQModule):
         # keep reference to brain
         self.brain = brain
         # some index magic for goal reference variables
-        for k,v in self.goal_dims_dict.items():
+        for k,v in self.prop_goal_dims_dict.items():
             self.goal_dims[k] = []
             for gdim in v:
                 # print v, self.brain.smdict_index[k]
@@ -69,14 +69,14 @@ class Task2(SMQModule):
                 self.goal_dims_num += 1
 
         # index magic for goal and error variables
-        for item in self.intero_goal_idx:
+        for item in self.prop_goal_intero_idx:
             # print item
-            self.intero_goal_idx_num.append(self.brain.smdict_index["s_intero"][item])
-        for item in self.intero_error_idx:
+            self.prop_goal_intero_idx_num.append(self.brain.smdict_index["s_intero"][item])
+        for item in self.prop_error_intero_idx:
             # print item
-            self.intero_error_idx_num.append(self.brain.smdict_index["s_intero"][item])
+            self.prop_error_intero_idx_num.append(self.brain.smdict_index["s_intero"][item])
 
-        for item in ["brain", "goal_dims_num", "goal_dims", "intero_goal_idx_num", "intero_error_idx_num", "goaltype"]:
+        for item in ["brain", "goal_dims_num", "goal_dims", "prop_goal_intero_idx_num", "prop_error_intero_idx_num", "goaltype"]:
             if hasattr(self, item):
                 self.conf[item] = getattr(self, item)
 

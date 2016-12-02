@@ -69,7 +69,7 @@ class AngularPursuitMotivation(Motivation):
         gain = self.brain.gain
 
         # cartesian error as computed earlier
-        error_cart = smdict["s_intero"][self.intero_error_idx_num]
+        error_cart = smdict["s_intero"][self.prop_error_intero_idx_num]
 
         print "error_cart.shape", error_cart.shape
         # add noise to error

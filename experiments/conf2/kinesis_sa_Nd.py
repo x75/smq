@@ -99,9 +99,9 @@ conf = {
                 {
                     "class": GoalTask2,  # class
                     "name": "goaltask2", # name
-                    "goal_dims_dict":   {"s_proprio": make_column_names_numbered("j_ang", motors)}, # map goal components to items in sm interface
-                    "intero_goal_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
-                    "intero_error_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
+                    "prop_goal_dims_dict":   {"s_proprio": make_column_names_numbered("j_ang", motors)}, # map goal components to items in sm interface
+                    "prop_goal_intero_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
+                    "prop_error_intero_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
                     "goald": JointGoal,
                     "error": DifferenceError,
                     "measure": MSEMeasure,

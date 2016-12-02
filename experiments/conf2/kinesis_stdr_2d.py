@@ -98,12 +98,12 @@ conf = {
                     "class": GoalTask2, 
                     "name": "goaltask2", # name
                     "goaltype": "stdr_pos", # "stdr_sonar"
-                    "goal_dims_dict":   {"s_extero": make_column_names_numbered("pos", 2)}, # map goal components to items in sm interface
-                    "intero_goal_idx":  make_column_names_numbered("pos_goal", 2),   # map goal components to items in s_intero
-                    "intero_error_idx": make_column_names_numbered("pos_error", 2),  # map goal components to items in s_intero
-                    # "goal_dims_dict":   {"s_extero": make_column_names_numbered("sonar", 3)}, # map goal components to items in sm interface
-                    # "intero_goal_idx":  make_column_names_numbered("sonar_goal", 3),   # map goal components to items in s_intero
-                    # "intero_error_idx": make_column_names_numbered("sonar_error", 3),  # map goal components to items in s_intero
+                    "prop_goal_dims_dict":   {"s_extero": make_column_names_numbered("pos", 2)}, # map goal components to items in sm interface
+                    "prop_goal_intero_idx":  make_column_names_numbered("pos_goal", 2),   # map goal components to items in s_intero
+                    "prop_error_intero_idx": make_column_names_numbered("pos_error", 2),  # map goal components to items in s_intero
+                    # "prop_goal_dims_dict":   {"s_extero": make_column_names_numbered("sonar", 3)}, # map goal components to items in sm interface
+                    # "prop_goal_intero_idx":  make_column_names_numbered("sonar_goal", 3),   # map goal components to items in s_intero
+                    # "prop_error_intero_idx": make_column_names_numbered("sonar_error", 3),  # map goal components to items in s_intero
                     # "loss": "mse",
                     "goald": PosGoal,
                     "error": DifferenceError,
