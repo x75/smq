@@ -136,3 +136,7 @@ def ct_car2pol(x):
         p[i+1] = phi
 
     return p
+
+
+################################################################################
+# some signal processing and math function helpers

@@ -353,6 +353,7 @@ class PlotTimeseriesNDrealtimeseries(Plot):
             cols  = ["vel%d" % (i) for i in range(items[0].dim_s_motor)]
             cols += ["acc_pred%d" % (i) for i in range(items[0].dim_s_motor)]
 
+        # FIXME: make generic
         numplots = 1
         cols_ext = []
         for i in range(items[0].dim_s_extero):
@@ -360,9 +361,14 @@ class PlotTimeseriesNDrealtimeseries(Plot):
             if colname in columns:
                 cols_ext += [colname]
                 numplots = 2
+                
             colname = "ee_pos%d" % i
             if colname in columns:
                 cols_ext += [colname]
+                
+        colname = "avgerrorposgoal_avgerror0"
+        if colname in columns:
+            cols_avgerrorposgoal = [colname]
 
             
         df2 = df[cols]
@@ -382,6 +388,7 @@ class PlotTimeseriesNDrealtimeseries(Plot):
             pl.subplot(111)
         else:
             pl.subplot(211)
+        pl.title("Proprioceptive space")
         x1 = df[cols].values
         x2 = df[self.cols_goals].values
         # print "x1.shape", x1.shape
@@ -393,5 +400,7 @@ class PlotTimeseriesNDrealtimeseries(Plot):
 
         if numplots == 2:
             pl.subplot(212)
+            pl.title("Exteroceptive space")
             pl.plot(df[cols_ext])
+            pl.plot(df[cols_avgerrorposgoal])
         pl.show()

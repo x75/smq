@@ -5,7 +5,7 @@
 #+OPTIONS: toc:nil
 
 * Items
-** TODO tasks
+** TODO Tasks
 
 grow package by stepping through the tasks
 
@@ -24,7 +24,11 @@ grow package by stepping through the tasks
  - EH base learner (paper repr)
  - ISO learner stdr (repr?)
 
-** TODO design questons
+** TODO Design questons
+ - configuration: define "ifs" implicitly from the modules themselves
+   so we only have variables in the interface which are actually being
+   created and used
+ - use decorators for handling operations common to step for all classes
  - handle multiple goals: proprio goal is special
  - all modules should know necessary dims, get shape foo straight with
    assert and reshape?
@@ -97,7 +101,7 @@ grow package by stepping through the tasks
    that can also be saved to print format
 
 ** TODO failsafe
- - make failsafe checks for configuration consistency
+ - Make failsafe checks for configuration consistency
 
 ** TODO integration / robots lib
  - ideally, i would like to have a library of systems which can be
@@ -129,6 +133,7 @@ grow package by stepping through the tasks
 
 ** TODO logging
  - all modules log inputs and outputs within their own namespace
+ - also log meta information like training and validation times and losses for learners etc
  - how logging and ros publishing is the same or not: ROS also
    involves inputs whereas logging is only one-way
  - logging/publishing decorators

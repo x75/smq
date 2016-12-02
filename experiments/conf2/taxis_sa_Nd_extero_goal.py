@@ -21,7 +21,7 @@ from smq.brains import Brain2, KinesisBrain2, TaxisBrain2, E2PBrain2
 
 # task
 from smq.tasks        import GoalTaskTaxis2
-from smq.goals        import JointGoal, CntPosGoal, AvgErrorPosGoal
+from smq.goals        import JointGoal, CntPosGoal, AvgErrorPosGoal, ExteroPosGoal#,  AvgErrorExteroPosGoal
 from smq.errors       import DifferenceError, AngularError
 from smq.measures     import MSEMeasure
 from smq.motivations  import UniformRandomMotivation, AngularPursuitMotivation
@@ -41,28 +41,6 @@ conf = {
     "numsteps": numsteps,
     "id": "%s_%s" % (name, time.strftime("%Y%m%d_%H%M%S")),
     # these are arrays of dicts specifying components
-    # robots, brains, interfaces need to match / correspond
-    "ifs": [
-        {
-            # dimensions of different subparts of sm vector
-            # make that more compact / automatically inferred
-            # actually: make that lists of names whose length is the dim
-            # from world
-            "dim_s_proprio": make_column_names_numbered("j_ang", motors),
-            "dim_s_extero": make_column_names_numbered("ee_pos", 2),
-            # internal
-            "dim_s_intero": make_column_names_numbered("j_ang_", motors) + \
-        make_column_names_numbered("j_ang_error", motors) + \
-        make_column_names_numbered("j_ang_goal", motors) + \
-        make_column_names_numbered("pos_", extero) + \
-        make_column_names_numbered("pos_error", extero) + \
-        make_column_names_numbered("pos_goal", extero),
-            "dim_s_reward": make_column_names_numbered("dist_goal", 1),
-            "dim_s_pred": make_column_names_numbered("j_ang_vel_pred", motors),
-            # to world
-            "dim_s_motor": make_column_names_numbered("m", motors),
-        },
-    ],
     "robots": [
         {
             "class": SimpleArmRobot, # SimpleRandomRobot,
@@ -86,11 +64,35 @@ conf = {
             "sysnoise": 1e-2,
         }
     ],
+    # robots, brains, interfaces need to match / correspond
+    "ifs": [
+        {
+            # dimensions of different subparts of sm vector
+            # make that more compact / automatically inferred
+            # actually: make that lists of names whose length is the dim
+            # from world
+            "dim_s_proprio": make_column_names_numbered("j_ang", motors),
+            "dim_s_extero": make_column_names_numbered("ee_pos", 2),
+            # internal
+            "dim_s_intero": make_column_names_numbered("j_ang_", motors) + \
+        make_column_names_numbered("j_ang_error", motors) + \
+        make_column_names_numbered("j_ang_goal", motors) + \
+        make_column_names_numbered("pos_", extero) + \
+        make_column_names_numbered("pos_error", extero) + \
+        make_column_names_numbered("pos_goal", extero) + \
+        make_column_names_numbered("avgerrorposgoal_avgerror", 1),
+            "dim_s_reward": make_column_names_numbered("dist_goal", 1),
+            "dim_s_pred": make_column_names_numbered("j_ang_vel_pred", motors),
+            # to world
+            "dim_s_motor": make_column_names_numbered("m", motors),
+        },
+    ],
     "brains": [
         {
             "class": E2PBrain2,
             "name": make_robot_name(expr_id, "taxisbrain", 0),
             "dim_s_motor": motors,
+            "e2p": None,
             "variant": "binary_threshold", # "continuous_linear"
             "continuous_gain": 1.5,
             "binary_threshold": 0.05,
@@ -107,7 +109,7 @@ conf = {
                     "intero_goal_idx":  make_column_names_numbered("j_ang_goal", motors),   # map goal components to items in s_intero
                     "intero_error_idx": make_column_names_numbered("j_ang_error", motors),  # map goal components to items in s_intero
                     "goald": {
-                        "class": AvgErrorPosGoal,
+                        "class": ExteroPosGoal, #AvgErrorPosGoal,
                         "thresh": 0.005,
                     }, # JointGoal, # CntPosGoal,
                     "error": DifferenceError,
