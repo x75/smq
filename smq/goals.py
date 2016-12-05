@@ -96,11 +96,13 @@ class CntPosGoal(PosGoal):
             self.resample_interval = 100
 
     def step(self, smdict):
+        print "%s.step cnt = %d" % (self.__class__.__name__, self.cnt)
         smdict = PosGoal.step(self, smdict)
         if self.cnt % self.resample_interval == 0:
             self.goal = self.sample()
-        
-        self.cnt += 1
+
+        # FIXME: use decorators to do bookkeeping
+        # self.cnt += 1
         return smdict
 
 class AvgErrorPosGoal(PosGoal):
@@ -225,11 +227,13 @@ class AvgErrorExteroPosGoal(ExteroPosGoal):
             self.brain.smdict["s_intero"][avgerrextidx] = getattr(self, logitem)
         
         # check if threshold exceeded
-        if (self.cnt == 0 or self.cnt > 100) and self.cnt % 100 == 0:
+        if (self.cnt == 0 or self.cnt > 100) and self.cnt % 10 == 0:
+            # error is small enough to consider having reached the goal, sample new goal
             if self.avgerror_prop < self.thresh or self.avgerror_ext < self.thresh:
                 self.goal = ExteroPosGoal.sample(self)
-            elif self.avgerror_ext > 0.2:
-                if self.avgderror_ext < 0.002:
+            elif self.avgerror_ext > 0.01:
+                # error is large and does not change so goal is probably unreachable, try a new one
+                if np.abs(self.avgderror_ext) < 0.02:
                     self.goal = ExteroPosGoal.sample(self)
                     
                 

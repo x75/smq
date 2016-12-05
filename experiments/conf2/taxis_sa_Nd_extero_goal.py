@@ -98,7 +98,7 @@ conf = {
             "binary_threshold": 0.05,
             "binary_high_range": 0.5, # np.pi/2.0,
             "binary_low_range": 0.01,
-            "gain": 0.01,
+            "gain": 0.1,
             # tasks be of length either one or same as len(robots)
             "tasks": [
                 {

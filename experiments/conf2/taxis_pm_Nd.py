@@ -14,7 +14,7 @@ import time
 from smq.utils  import make_column_names_numbered, make_expr_id, make_robot_name
 from smq.worlds import RobotWorld2
 from smq.robots import PointmassRobot2
-from smq.plot   import PlotTimeseries2, PlotTimeseriesND
+from smq.plot   import PlotTimeseries2, PlotTimeseriesND, PlotTimeseriesNDrealtimeseries
 from smq.tasks  import GoalTask2, GoalTaskTaxis2
 from smq.brains import TaxisBrain2
 
@@ -90,7 +90,11 @@ conf = {
                     "prop_goal_dims_dict":   {"s_extero": make_column_names_numbered("vel", motors)}, # map goal components to items in sm interface
                     "prop_goal_intero_idx":  make_column_names_numbered("vel_goal", motors),   # map goal components to items in s_intero
                     "prop_error_intero_idx": make_column_names_numbered("vel_error", motors),  # map goal components to items in s_intero
-                    "goald": CntPosGoal,
+                    "goald": {
+                        "class": CntPosGoal,
+                        "mins": -0.7,
+                        "maxs": 0.7
+                    },
                     "error": DifferenceError,
                     "measure": MSEMeasure,
                     "motivation": AngularPursuitMotivation,
@@ -116,5 +120,9 @@ conf = {
             "type": "seaborn", # "pyplot",
             "plotitems": ["brains"],
         },
+        {
+            "class": PlotTimeseriesNDrealtimeseries,
+        "title": "%s" % (expr_id),
+        }
     ],
 }

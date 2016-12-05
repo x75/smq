@@ -10,7 +10,7 @@ class Error(SMQModule):
         self.error = np.zeros((self.goal_dims_num, 1))
 
     def step(self, state, goal):
-        print "goal = %s" % (goal)
+        print "%s.step goal = %s, state = %s" % (self.__class__.__name__, goal, state)
         self.error = state - goal
 
 class DifferenceError(Error):
