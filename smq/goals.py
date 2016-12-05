@@ -188,27 +188,51 @@ class AvgErrorExteroPosGoal(ExteroPosGoal):
         self.avgerror_ext  = 0.0 # 
         self.avgerror_prop_ = 0.0 # t - 1
         self.avgerror_ext_  = 0.0 #
+        self.davgerror_prop = 0.0 # deriv
+        self.davgerror_ext  = 0.0 #
+        self.avgderror_prop = 0.0 # avgderiv
+        self.avgderror_ext  = 0.0 #
         # difference
         # avg difference
         # FIXME: generic function to compute: error, avg error, error derivative, avg error derivative, then replace error with some signal
-        self.coeff = 0.05
+        self.coeff = 0.1
+        self.dcoeff = 0.025
         self.cnt = 0
         # FIXME: rather use average change in error
 
     def sample(self):
         # compute the average error
+        self.avgerror_prop_ = self.avgerror_prop # store last timestep
         self.avgerror_prop = self.avgerror_prop * (1 - self.coeff) + self.brain.smdict["s_reward"] * self.coeff
-        # log average error to sm space
-        avgerrpropidx = self.brain.get_sm_index("s_intero", "avgerrorposgoal_avgerror", indexdim = 1)
-        self.brain.smdict["s_intero"][avgerrpropidx] = self.avgerror_prop
+        self.davgerror_prop = self.avgerror_prop - self.avgerror_prop_
+        self.avgderror_prop = self.avgderror_prop * (1 - self.dcoeff) + self.davgerror_prop * self.dcoeff
+        # # log average error to sm space
+        # avgerrpropidx = self.brain.get_sm_index("s_intero", "avgerrorposgoal_avgerror", indexdim = 1)
+        # self.brain.smdict["s_intero"][avgerrpropidx] = self.avgerror_prop
 
+        self.avgerror_ext_ = self.avgerror_ext # store last timestep
         exterr = np.sum(np.square((self.brain.smdict["s_extero"] - self.goal_ext)))
-        self.avgerror_ext  = self.avgerror_prop * (1 - self.coeff) + exterr * self.coeff
+        self.avgerror_ext  = self.avgerror_ext * (1 - self.coeff) + exterr * self.coeff
+        self.davgerror_ext = self.avgerror_ext - self.avgerror_ext_
+        self.avgderror_ext = self.avgderror_ext * (1 - self.dcoeff) + self.davgerror_ext * self.dcoeff
+        
+        # log average error to sm space
+        locallogitems = ["avgerror_prop", "avgerror_ext", "davgerror_prop", "davgerror_ext", "avgderror_prop", "avgderror_ext"]
+        for logitem in locallogitems:
+            avgerrextidx = self.brain.get_sm_index_single("s_intero", logitem)
+            # print "%s.sample avgerrextidx = %s" % (self.__class__.__name__, avgerrextidx)
+            # self.brain.smdict["s_intero"][avgerrextidx] = self.avgerror_ext
+            self.brain.smdict["s_intero"][avgerrextidx] = getattr(self, logitem)
         
         # check if threshold exceeded
-        if self.cnt == 0 or self.cnt > 100:
+        if (self.cnt == 0 or self.cnt > 100) and self.cnt % 100 == 0:
             if self.avgerror_prop < self.thresh or self.avgerror_ext < self.thresh:
                 self.goal = ExteroPosGoal.sample(self)
+            elif self.avgerror_ext > 0.2:
+                if self.avgderror_ext < 0.002:
+                    self.goal = ExteroPosGoal.sample(self)
+                    
+                
         # FIXME: shouldn't we be logging the goal here?
         print "self.goal = %s" % self.goal
         return self.goal

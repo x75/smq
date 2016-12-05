@@ -49,6 +49,9 @@ class Brain2(IFSMQModule):
             indexdim = self.dim_s_motor
         return [self.smdict_index[dimgroup]["%s%d" % (base, k)] for k in range(indexdim)]
         
+    def get_sm_index_single(self, dimgroup, name):
+        return [self.smdict_index[dimgroup]["%s" % (name)]]
+    
     def get_logdata(self):
         """collect all internal variables, stack them into one vector and
         return that"""

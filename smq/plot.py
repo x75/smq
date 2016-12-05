@@ -365,12 +365,21 @@ class PlotTimeseriesNDrealtimeseries(Plot):
             colname = "ee_pos%d" % i
             if colname in columns:
                 cols_ext += [colname]
-                
-        colname = "avgerrorposgoal_avgerror0"
-        if colname in columns:
-            cols_avgerrorposgoal = [colname]
 
-            
+        cols_error_prop = []
+        colnames_error_prop = ["avgerror_prop", "davgerror_prop", "avgderror_prop"]
+        for ec in colnames_error_prop:
+            if ec in columns:
+                # print "lalala", err_colname
+                cols_error_prop.append(ec)
+                
+        cols_error_ext = []
+        colnames_error_ext = ["avgerror_ext", "davgerror_ext", "avgderror_ext"]
+        for ec in colnames_error_ext:
+            if ec in columns:
+                # print "lalala", err_colname
+                cols_error_ext.append(ec)
+
         df2 = df[cols]
 
         print df2
@@ -385,9 +394,9 @@ class PlotTimeseriesNDrealtimeseries(Plot):
         fig.suptitle("Experiment %s, module %s" % (self.title, tbl_key))
 
         if numplots == 1:
-            pl.subplot(111)
-        else:
             pl.subplot(211)
+        else:
+            pl.subplot(411)
         pl.title("Proprioceptive space")
         x1 = df[cols].values
         x2 = df[self.cols_goals].values
@@ -398,9 +407,17 @@ class PlotTimeseriesNDrealtimeseries(Plot):
         pl.plot(x1plot)
         pl.plot(x2plot)
 
-        if numplots == 2:
+        if numplots == 1:
             pl.subplot(212)
+        else: # numplots == 2:
+            pl.subplot(412)
+        pl.plot(df[cols_error_prop])
+
+        if numplots == 2:
+            pl.subplot(413)
             pl.title("Exteroceptive space")
             pl.plot(df[cols_ext])
-            pl.plot(df[cols_avgerrorposgoal])
+            print "cols_error_ext", cols_error_ext
+            pl.subplot(414)
+            pl.plot(df[cols_error_ext])
         pl.show()

@@ -80,7 +80,7 @@ conf = {
         make_column_names_numbered("pos_", extero) + \
         make_column_names_numbered("pos_error", extero) + \
         make_column_names_numbered("pos_goal", extero) + \
-        make_column_names_numbered("avgerrorposgoal_avgerror", 1),
+        ["avgerror_prop", "avgerror_ext", "davgerror_prop", "davgerror_ext", "avgderror_prop", "avgderror_ext"],
             "dim_s_reward": make_column_names_numbered("dist_goal", 1),
             "dim_s_pred": make_column_names_numbered("j_ang_vel_pred", motors),
             # to world
