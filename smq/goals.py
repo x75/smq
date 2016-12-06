@@ -161,8 +161,11 @@ class ExteroPosGoal(PosGoal):
         # np.random.uniform([0, -1], [1, 1], (1, 2)).T
         cond[2:] = np.nan
         if self.brain.e2p.fitted:
-            print "%s.sample: brain.e2p fitted" % (self.__class__.__name__)
-            ret = self.brain.e2p.predict(cond).T
+            if hasattr(self.brain.e2p, "cen_lst"):
+                print "%s.sample: brain.e2p fitted" % (self.__class__.__name__)
+                ret = self.brain.e2p.predict(cond).T
+            else:
+                ret = self.brain.e2p.predict(self.goal_ext).T
         else:
             print "%s.sample: brain.e2p unfitted" % (self.__class__.__name__)
             ret = np.random.uniform(self.goald["mins"], self.goald["maxs"], (self.goal_dims_num, 1))

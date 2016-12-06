@@ -13,7 +13,7 @@ from smq.utils import get_items, get_items2, get_items_with_ref, ct_pol2car, ct_
 from smq.core import IFSMQModule
 from smq.motivations import default_conf_motivations
 
-from actinf_models import ActInfGMM
+from actinf_models import ActInfGMM, ActInfHebbianSOM
 
 ################################################################################
 # Brain's are things that can be fed with numbers (data) and which respond with
@@ -160,7 +160,8 @@ class E2PBrain2(Brain2):
         Brain2.__init__(self, conf, ifs_conf)
 
         e2p_dim = self.dim_s_proprio + self.dim_s_extero
-        self.e2p = ActInfGMM(e2p_dim)
+        # self.e2p = ActInfGMM(e2p_dim)
+        self.e2p = ActInfHebbianSOM(self.dim_s_extero, self.dim_s_proprio)
 
     def step(self, x):
         """ingest new sensory measurements into state"""
