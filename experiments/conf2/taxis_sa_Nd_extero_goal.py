@@ -32,7 +32,7 @@ numsteps = 1000
 dt = 0.1
 motors   = 3
 extero   = 2
-name = "taxis_sa_%dd" % (motors)
+name = "taxis_sa_%dd_extero_goal" % (motors)
 expr_id = make_expr_id(name)
 
 # using dict convention seemed to be the best over yaml and friends
@@ -98,7 +98,7 @@ conf = {
             "binary_threshold": 0.05,
             "binary_high_range": 0.5, # np.pi/2.0,
             "binary_low_range": 0.01,
-            "gain": 0.1,
+            "gain": 0.5,
             # tasks be of length either one or same as len(robots)
             "tasks": [
                 {

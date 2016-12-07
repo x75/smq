@@ -232,11 +232,13 @@ class AvgErrorExteroPosGoal(ExteroPosGoal):
         # check if threshold exceeded
         if (self.cnt == 0 or self.cnt > 100) and self.cnt % 10 == 0:
             # error is small enough to consider having reached the goal, sample new goal
-            if self.avgerror_prop < self.thresh or self.avgerror_ext < self.thresh:
+            if self.avgerror_prop < self.thresh and self.avgerror_ext < self.thresh:
                 self.goal = ExteroPosGoal.sample(self)
             elif self.avgerror_ext > 0.01:
+                print "%s.sample large error e = %f, de = %f" % (self.__class__.__name__, self.avgerror_ext, self.avgderror_ext)
                 # error is large and does not change so goal is probably unreachable, try a new one
-                if np.abs(self.avgderror_ext) < 0.02:
+                # if np.abs(self.avgderror_ext) < 0.02:
+                if self.avgderror_ext > -0.025:
                     self.goal = ExteroPosGoal.sample(self)
                     
                 

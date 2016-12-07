@@ -160,8 +160,8 @@ class E2PBrain2(Brain2):
         Brain2.__init__(self, conf, ifs_conf)
 
         e2p_dim = self.dim_s_proprio + self.dim_s_extero
-        # self.e2p = ActInfGMM(e2p_dim)
-        self.e2p = ActInfHebbianSOM(self.dim_s_extero, self.dim_s_proprio)
+        self.e2p = ActInfGMM(e2p_dim)
+        # self.e2p = ActInfHebbianSOM(self.dim_s_extero, self.dim_s_proprio)
 
     def step(self, x):
         """ingest new sensory measurements into state"""
