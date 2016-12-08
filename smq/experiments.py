@@ -165,8 +165,8 @@ class Experiment(object):
             
         # print "self.conf", self.conf
         self.brains = []
-        self.loss = []
-        self.task = []
+        # self.loss = []
+        # self.task = []
         self.robots = []
         self.worlds = [] # index 0 convention, we will have _one_ world for a beginning
         self.analyses = []
