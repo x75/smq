@@ -1,5 +1,4 @@
-# smq
 
-Clean version of my thesis repo (smp)
 
+# smq - clean version of my thesis code (smp)
 
