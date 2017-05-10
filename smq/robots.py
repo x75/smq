@@ -424,6 +424,9 @@ class NullRobot2(Robot2):
         Robot2.__init__(self, conf, ifs_conf)
     
 class PointmassRobot2(Robot2):
+    """point mass model: this seems to be the same as in
+explauto/environments/pointmass.py
+"""
     def __init__(self, conf, ifs_conf):
         Robot2.__init__(self, conf, ifs_conf)
 
